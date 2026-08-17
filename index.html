@@ -1,4 +1,4 @@
-<!doctype html>
+&lt;!doctype html&gt;
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
@@ -64,6 +64,30 @@
       background: var(--green);
       font-size: 16px;
     }
+
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      padding: 7px 11px;
+      border-radius: 20px;
+      background: var(--background);
+      color: var(--sub-text);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .sync-status.online .sync-dot { background: var(--green); }
+    .sync-status.syncing .sync-dot { background: #f5a623; }
+    .sync-status.offline .sync-dot { background: #f04452; }
 
     .main-content {
       display: grid;
@@ -361,6 +385,10 @@
       <span class="logo-icon">✦</span>
       <span>페테르 탐방</span>
     </div>
+    <div id="syncStatus" class="sync-status">
+      <span class="sync-dot"></span>
+      <span id="syncLabel">연결 중</span>
+    </div>
   </header>
 
   <main class="main-content">
@@ -432,12 +460,19 @@
     ];
 
     const STORAGE_KEY = "peterExplorationEvents";
+    const TOKEN_STORAGE_KEY = "peterExplorationKey";
+    const GIST_ID = "dd6c6671134c12aff5b63a4bc2d536e2";
+    const GIST_FILENAME = "events.json";
+    const POLL_INTERVAL_MS = 8000;
+
+    let gistToken = localStorage.getItem(TOKEN_STORAGE_KEY) || "";
 
     const today = new Date();
     let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     let selectedKey = makeDateKey(today.getFullYear(), today.getMonth(), today.getDate());
-    let events = loadEvents();
+    let events = loadCache();
     let toastTimer;
+    let syncing = false;
 
     const calendarGrid = document.getElementById("calendarGrid");
     const monthTitle = document.getElementById("monthTitle");
@@ -445,6 +480,8 @@
     const eventList = document.getElementById("eventList");
     const eventDialog = document.getElementById("eventDialog");
     const eventForm = document.getElementById("eventForm");
+    const syncStatusEl = document.getElementById("syncStatus");
+    const syncLabelEl = document.getElementById("syncLabel");
 
     function makeDateKey(year, month, day) {
       return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
@@ -457,7 +494,7 @@
       return month + "월 " + day + "일 " + weekdays[date.getDay()] + "요일";
     }
 
-    function loadEvents() {
+    function loadCache() {
       try {
         const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
         return saved && typeof saved === "object" ? saved : {};
@@ -466,8 +503,10 @@
       }
     }
 
-    function saveEvents() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+    function cacheLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+      } catch (error) { /* ignore quota errors */ }
     }
 
     function showToast(message) {
@@ -476,6 +515,110 @@
       toast.classList.add("show");
       clearTimeout(toastTimer);
       toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2400);
+    }
+
+    function setSyncStatus(state) {
+      syncStatusEl.classList.remove("online", "syncing", "offline");
+      const labels = { online: "동기화됨", syncing: "동기화 중", offline: "오프라인", idle: "연결 중" };
+      if (state !== "idle") syncStatusEl.classList.add(state);
+      syncLabelEl.textContent = labels[state] || "연결 중";
+    }
+
+    // ---------- Remote storage (GitHub Gist) ----------
+
+    async function remoteGet() {
+      const response = await fetch("https://api.github.com/gists/" + GIST_ID, {
+        headers: { Accept: "application/vnd.github+json" }
+      });
+      if (!response.ok) throw new Error("GET " + response.status);
+      const data = await response.json();
+      const file = data.files && data.files[GIST_FILENAME];
+      if (!file) throw new Error("missing file");
+      return JSON.parse(file.content);
+    }
+
+    function ensureToken() {
+      if (!gistToken) {
+        const entered = window.prompt("참여 기록을 저장하려면 접근 코드를 입력해주세요 (경민님에게 문의)");
+        if (entered && entered.trim()) {
+          gistToken = entered.trim();
+          localStorage.setItem(TOKEN_STORAGE_KEY, gistToken);
+        }
+      }
+      return gistToken;
+    }
+
+    async function remotePut(data) {
+      const token = ensureToken();
+      if (!token) throw new Error("no token");
+      const response = await fetch("https://api.github.com/gists/" + GIST_ID, {
+        method: "PATCH",
+        headers: {
+          Accept: "application/vnd.github+json",
+          Authorization: "token " + token,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(data) } } })
+      });
+      if (!response.ok) {
+        if (response.status === 401) {
+          gistToken = "";
+          localStorage.removeItem(TOKEN_STORAGE_KEY);
+        }
+        throw new Error("PATCH " + response.status);
+      }
+    }
+
+    async function fetchRemoteEvents() {
+      if (syncing) return;
+      setSyncStatus("syncing");
+      try {
+        const remote = await remoteGet();
+        events = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        cacheLocal();
+        renderCalendar();
+        renderEventList();
+        setSyncStatus("online");
+      } catch (error) {
+        setSyncStatus("offline");
+      }
+    }
+
+    async function syncDateKey(dateKey) {
+      syncing = true;
+      setSyncStatus("syncing");
+      const localDateEvents = events[dateKey];
+      try {
+        let remote;
+        try {
+          remote = await remoteGet();
+        } catch (error) {
+          remote = { events: {} };
+        }
+        const mergedEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        mergedEvents[dateKey] = localDateEvents;
+        await remotePut({ events: mergedEvents });
+        events = mergedEvents;
+        cacheLocal();
+        setSyncStatus("online");
+      } catch (error) {
+        setSyncStatus("offline");
+        cacheLocal();
+      } finally {
+        syncing = false;
+        renderCalendar();
+        renderEventList();
+      }
+    }
+
+    function startSync() {
+      fetchRemoteEvents();
+      setInterval(function () {
+        if (document.visibilityState === "visible") fetchRemoteEvents();
+      }, POLL_INTERVAL_MS);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") fetchRemoteEvents();
+      });
     }
 
     function renderCalendar() {
@@ -622,9 +765,9 @@
         joined.splice(joinedIndex, 1);
         showToast(participantName + "님의 참여가 취소됐어요");
       }
-      saveEvents();
       renderCalendar();
       renderEventList();
+      syncDateKey(selectedKey);
     }
 
     document.getElementById("previousMonth").addEventListener("click", function () {
@@ -670,16 +813,18 @@
       if (!newEvent.company || !newEvent.time || !newEvent.place) return;
       if (!Array.isArray(events[selectedKey])) events[selectedKey] = [];
       events[selectedKey].push(newEvent);
-      saveEvents();
       eventForm.reset();
       eventDialog.close();
       renderCalendar();
       renderEventList();
       showToast(newEvent.company + " 탐방이 추가됐어요");
+      syncDateKey(selectedKey);
     });
 
     renderCalendar();
     renderEventList();
+    setSyncStatus("idle");
+    startSync();
   </script>
 </body>
 </html>
