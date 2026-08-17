@@ -71,6 +71,33 @@
       width: min(100% - 40px, 960px);
       margin: 0 auto 80px;
       padding-top: 56px;
+    .profile {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      margin-left: auto;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--green-dark);
+      background: var(--green-light);
+      font-weight: 700;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--green);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: minmax(600px, 1.8fr) minmax(320px, 0.9fr);
+      gap: 22px;
+      max-width: 1160px;
+      margin: 0 auto 80px;
+      margin: 0 auto 100px;
+      padding: 56px 20px 0;
     }
 
     .calendar-card, .detail-card {
@@ -141,6 +168,13 @@
 
     .weekdays span:first-child { color: #f04452; }
     .weekdays span:last-child { color: var(--green-dark); }
+    .weekdays span:first-child {
+      color: #f04452;
+    }
+
+    .weekdays span:last-child {
+      color: var(--green);
+    }
 
     .day {
       min-height: 88px;
@@ -154,6 +188,14 @@
 
     .day:not(.empty):hover { background: #f7faF2; }
     .day.selected { border-color: #a9cf75; background: #f4fae9; }
+    .day:not(.empty):hover {
+      background: #f7f9fa;
+    }
+
+    .day.selected {
+      border-color: #a9cf75;
+      background: #f4fae9;
+    }
 
     .day-number {
       display: grid;
@@ -168,6 +210,19 @@
     .day.sunday .day-number { color: #f04452; }
     .day.saturday .day-number { color: var(--green-dark); }
     .day.today .day-number { color: white; background: var(--green); font-weight: 700; }
+    .day.sunday .day-number {
+      color: #f04452;
+    }
+
+    .day.saturday .day-number {
+      color: var(--green-dark);
+    }
+
+    .day.today .day-number {
+      color: white;
+      background: var(--green);
+      font-weight: 700;
+    }
 
     .event-chip {
       display: block;
@@ -209,6 +264,8 @@
     }
 
     .detail-card {
+      align-self: start;
+      min-height: 500px;
       padding: 28px;
     }
 
@@ -225,6 +282,31 @@
       border-radius: 12px;
       color: white;
       background: var(--green);
+    .detail-header h2 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: -0.7px;
+    }
+
+    .weather {
+      padding: 7px 10px;
+      border-radius: 20px;
+      color: #9b6700;
+      background: #fff7e8;
+      font-size: 11px;
+    }
+
+    .event-detail {
+      padding-top: 25px;
+    }
+
+    .event-type {
+      display: inline-block;
+      padding: 6px 9px;
+      border-radius: 7px;
+      color: var(--green-dark);
+      background: var(--green-light);
+      font-size: 11px;
       font-weight: 700;
     }
 
@@ -248,6 +330,17 @@
       margin: 18px 0 10px;
       color: var(--sub-text);
       font-size: 12px;
+    .face {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      margin-left: -7px;
+      place-items: center;
+      border: 2px solid white;
+      border-radius: 50%;
+      color: #4e5968;
+      background: #e4f3ce;
+      font-size: 10px;
       font-weight: 700;
     }
 
@@ -260,6 +353,17 @@
       color: var(--person-color);
       background: white;
       font-size: 12px;
+    .face:nth-child(4) {
+      background: #fef3c7;
+    }
+
+    .join-button {
+      width: 100%;
+      height: 50px;
+      border-radius: 13px;
+      color: white;
+      background: var(--green);
+      box-shadow: 0 8px 18px rgba(120, 184, 42, 0.24);
       font-weight: 700;
       transition: 0.15s;
     }
@@ -268,6 +372,47 @@
       color: white;
       background: var(--person-color);
       box-shadow: 0 3px 8px color-mix(in srgb, var(--person-color) 28%, transparent);
+    .join-button:hover {
+      background: var(--green-dark);
+    }
+
+    .join-button.joined {
+      color: var(--green-dark);
+      background: var(--green-light);
+      box-shadow: none;
+    }
+
+    .empty-state {
+      padding: 75px 10px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      display: grid;
+      width: 60px;
+      height: 60px;
+      margin: auto;
+      place-items: center;
+      border-radius: 20px;
+      background: var(--background);
+      font-size: 27px;
+    }
+
+    .empty-state h3 {
+      margin: 18px 0 8px;
+      font-size: 17px;
+    }
+
+    .empty-state p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .guide {
+      padding: 90px max(24px, calc((100vw - 1120px) / 2)) 110px;
+      background: white;
     }
 
     .participant.joined::before { content: "✓ "; }
@@ -287,6 +432,11 @@
     }
 
     dialog::backdrop { background: rgba(25, 31, 40, 0.45); backdrop-filter: blur(2px); }
+    .guide-number {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: 800;
+    }
 
     .dialog-content { padding: 28px; }
     .dialog-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
@@ -331,6 +481,79 @@
       .participant-dot { padding: 1px 2px; font-size: 7px; }
       .more-events { display: none; }
       .detail-card { padding: 22px; border-radius: 18px; }
+
+    @media (max-width: 850px) {
+      .main-content { grid-template-columns: 1fr; }
+      .detail-card { min-height: auto; }
+    }
+
+    @media (max-width: 620px) {
+      .header { height: 62px; padding: 0 18px; }
+      .main-content { margin-bottom: 60px; padding: 28px 10px 0; }
+      .calendar-card { padding: 20px 10px; border-radius: 18px; }
+      .calendar-header { padding: 0 8px; }
+      .month-navigation { gap: 5px; }
+      .month-navigation h1 { min-width: 120px; font-size: 19px; }
+      .day { min-height: 66px; padding: 4px 2px; }
+      .event-chip { padding: 4px 3px; font-size: 8px; }
+      .more-events { display: none; }
+      .detail-card { padding: 22px; border-radius: 18px; }
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-card {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .header {
+        height: 62px;
+        padding: 0 18px;
+      }
+
+      .main-content {
+        padding: 32px 10px 0;
+        margin-bottom: 70px;
+      }
+
+      .calendar-card {
+        padding: 20px 10px;
+        border-radius: 18px;
+      }
+
+      .calendar-header {
+        padding: 0 8px;
+      }
+
+      .day {
+        min-height: 66px;
+        padding: 4px 2px;
+      }
+
+      .event-chip {
+        padding: 4px 3px;
+        font-size: 8px;
+      }
+
+      .people-count {
+        display: none;
+      }
+
+      .detail-card {
+        padding: 24px;
+        border-radius: 18px;
+      }
+
+      .guide {
+        padding-top: 70px;
+        padding-bottom: 80px;
+      }
+
+      .guide-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -362,15 +585,46 @@
     </section>
 
     <section class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
+    <aside class="detail-card" aria-live="polite">
       <div class="detail-header">
         <div>
           <p class="detail-label">선택한 날짜</p>
           <h2 id="selectedDate"></h2>
+  <main>
+    <section class="main-content">
+      <div class="calendar-card">
+        <div class="calendar-header">
+          <div class="month-navigation">
+            <button id="previousMonth" class="arrow-button" aria-label="이전 달">
+              ‹
+            </button>
+
+            <h2 id="monthTitle"></h2>
+
+            <button id="nextMonth" class="arrow-button" aria-label="다음 달">
+              ›
+            </button>
+          </div>
+
+          <button id="todayButton" class="today-button">
+            오늘
+          </button>
+        </div>
+
+        <div class="weekdays">
+          <span>일</span>
+          <span>월</span>
+          <span>화</span>
+          <span>수</span>
+          <span>목</span>
+          <span>금</span>
+          <span>토</span>
         </div>
         <button id="openEventForm" class="add-button">+ 탐방 추가</button>
       </div>
       <div id="eventList" class="event-list"></div>
     </section>
+    </aside>
   </main>
 
   <dialog id="eventDialog" aria-labelledby="dialogTitle">
@@ -387,6 +641,11 @@
         <div class="form-field">
           <label for="eventTime">시간</label>
           <input id="eventTime" name="eventTime" type="text" maxlength="30" placeholder="예: 오후 2시 30분" required>
+          <input id="eventTime" name="eventTime" type="time" required>
+        </div>
+        <div class="form-field">
+          <label for="eventPlace">장소</label>
+          <input id="eventPlace" name="eventPlace" type="text" maxlength="100" placeholder="방문 장소를 입력하세요" required>
         </div>
         <button class="submit-button" type="submit">캘린더에 추가하기</button>
       </form>
@@ -548,6 +807,9 @@
         const time = document.createElement("p");
         time.textContent = "◷ " + event.time;
         information.appendChild(time);
+        const place = document.createElement("p");
+        place.textContent = "⌖ " + event.place;
+        information.append(time, place);
         item.appendChild(information);
 
         const participantTitle = document.createElement("p");
@@ -637,6 +899,11 @@
       };
 
       if (!newEvent.company || !newEvent.time.trim()) return;
+        place: formData.get("eventPlace").trim(),
+        joined: []
+      };
+
+      if (!newEvent.company || !newEvent.time || !newEvent.place) return;
       if (!Array.isArray(events[selectedKey])) events[selectedKey] = [];
       events[selectedKey].push(newEvent);
       saveEvents();
