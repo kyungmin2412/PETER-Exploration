@@ -1,1 +1,1110 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>함께, 탐방</title>
 
+  <style>
+    :root {
+      --blue: #3182f6;
+      --blue-dark: #1b64da;
+      --blue-light: #e8f3ff;
+      --text: #191f28;
+      --sub-text: #6b7684;
+      --muted: #8b95a1;
+      --background: #f4f6f8;
+      --border: #e5e8eb;
+      --white: #ffffff;
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Apple SD Gothic Neo",
+        "Noto Sans KR",
+        "Segoe UI",
+        sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      color: var(--text);
+      background: var(--background);
+    }
+
+    button {
+      border: 0;
+      font: inherit;
+      cursor: pointer;
+    }
+
+    .header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      height: 70px;
+      padding: 0 max(24px, calc((100vw - 1160px) / 2));
+      background: rgba(255, 255, 255, 0.92);
+      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(15px);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.8px;
+    }
+
+    .logo-icon {
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border-radius: 11px;
+      color: white;
+      background: var(--blue);
+    }
+
+    .profile {
+      display: grid;
+      width: 38px;
+      height: 38px;
+      margin-left: auto;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--blue-dark);
+      background: var(--blue-light);
+      font-weight: 700;
+    }
+
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 1160px;
+      min-height: 330px;
+      margin: 0 auto;
+      padding: 64px 30px;
+    }
+
+    .eyebrow {
+      margin: 0 0 14px;
+      color: var(--blue);
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: clamp(40px, 5vw, 56px);
+      line-height: 1.23;
+      letter-spacing: -2.5px;
+    }
+
+    .hero-description {
+      margin: 22px 0 0;
+      color: var(--sub-text);
+      font-size: 17px;
+      line-height: 1.7;
+      letter-spacing: -0.3px;
+    }
+
+    .hero-graphic {
+      position: relative;
+      width: 330px;
+      height: 190px;
+    }
+
+    .route {
+      position: absolute;
+      top: 92px;
+      left: 15px;
+      width: 260px;
+      border-top: 5px dotted #d7dde4;
+      transform: rotate(-9deg);
+    }
+
+    .start-point {
+      position: absolute;
+      bottom: 48px;
+      left: 15px;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      background: var(--blue);
+    }
+
+    .map-pin {
+      position: absolute;
+      top: 20px;
+      right: 25px;
+      width: 70px;
+      height: 70px;
+      border-radius: 50% 50% 50% 10%;
+      background: var(--blue);
+      box-shadow: 0 18px 30px rgba(49, 130, 246, 0.25);
+      transform: rotate(-45deg);
+    }
+
+    .map-pin::after {
+      position: absolute;
+      top: 22px;
+      left: 22px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: white;
+      content: "";
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: minmax(600px, 1.8fr) minmax(310px, 0.8fr);
+      gap: 22px;
+      max-width: 1160px;
+      margin: 0 auto 100px;
+      padding: 0 20px;
+    }
+
+    .calendar-card,
+    .detail-card {
+      background: var(--white);
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 27, 55, 0.06);
+    }
+
+    .calendar-card {
+      padding: 30px;
+    }
+
+    .calendar-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 26px;
+    }
+
+    .month-navigation {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .month-navigation h2 {
+      min-width: 140px;
+      margin: 0;
+      text-align: center;
+      font-size: 22px;
+      letter-spacing: -0.8px;
+    }
+
+    .arrow-button {
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      color: #4e5968;
+      background: transparent;
+      font-size: 25px;
+    }
+
+    .arrow-button:hover {
+      background: var(--background);
+    }
+
+    .today-button {
+      padding: 9px 15px;
+      border-radius: 10px;
+      color: #4e5968;
+      background: var(--background);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .weekdays,
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .weekdays {
+      padding-bottom: 12px;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .weekdays span:first-child {
+      color: #f04452;
+    }
+
+    .weekdays span:last-child {
+      color: var(--blue);
+    }
+
+    .day {
+      min-height: 88px;
+      padding: 8px 6px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: transparent;
+      text-align: left;
+      transition: 0.15s;
+    }
+
+    .day:not(.empty):hover {
+      background: #f7f9fa;
+    }
+
+    .day.selected {
+      border-color: #90c2ff;
+      background: #f2f8ff;
+    }
+
+    .day-number {
+      display: grid;
+      width: 27px;
+      height: 27px;
+      place-items: center;
+      border-radius: 50%;
+      color: #4e5968;
+      font-size: 13px;
+    }
+
+    .day.sunday .day-number {
+      color: #f04452;
+    }
+
+    .day.saturday .day-number {
+      color: var(--blue);
+    }
+
+    .day.today .day-number {
+      color: white;
+      background: var(--blue);
+      font-weight: 700;
+    }
+
+    .event-chip {
+      display: block;
+      width: 100%;
+      margin-top: 5px;
+      padding: 6px;
+      overflow: hidden;
+      border-radius: 7px;
+      color: var(--blue-dark);
+      background: var(--blue-light);
+      font-size: 10px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .event-chip.green {
+      color: #13986b;
+      background: #e8faf2;
+    }
+
+    .event-chip.orange {
+      color: #e87700;
+      background: #fff4e8;
+    }
+
+    .people-count {
+      display: block;
+      margin: 4px 0 0 5px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .detail-card {
+      align-self: start;
+      min-height: 460px;
+      padding: 30px;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-label {
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .detail-header h2 {
+      margin: 0;
+      font-size: 21px;
+      letter-spacing: -0.7px;
+    }
+
+    .weather {
+      padding: 7px 10px;
+      border-radius: 20px;
+      color: #9b6700;
+      background: #fff7e8;
+      font-size: 11px;
+    }
+
+    .event-detail {
+      padding-top: 25px;
+    }
+
+    .event-type {
+      display: inline-block;
+      padding: 6px 9px;
+      border-radius: 7px;
+      color: var(--blue);
+      background: var(--blue-light);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .event-detail h3 {
+      margin: 14px 0 20px;
+      font-size: 23px;
+      letter-spacing: -0.8px;
+    }
+
+    .information {
+      display: grid;
+      gap: 13px;
+      margin-bottom: 25px;
+      color: #4e5968;
+      font-size: 13px;
+    }
+
+    .information p {
+      margin: 0;
+    }
+
+    .attendee-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin: 25px 0 15px;
+    }
+
+    .attendee-box strong {
+      font-size: 13px;
+    }
+
+    .faces {
+      display: flex;
+    }
+
+    .face {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      margin-left: -7px;
+      place-items: center;
+      border: 2px solid white;
+      border-radius: 50%;
+      color: #4e5968;
+      background: #dbeafe;
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .face:nth-child(2) {
+      background: #fee2e2;
+    }
+
+    .face:nth-child(3) {
+      background: #dcfce7;
+    }
+
+    .face:nth-child(4) {
+      background: #fef3c7;
+    }
+
+    .join-button {
+      width: 100%;
+      height: 50px;
+      border-radius: 13px;
+      color: white;
+      background: var(--blue);
+      box-shadow: 0 8px 18px rgba(49, 130, 246, 0.22);
+      font-weight: 700;
+    }
+
+    .join-button:hover {
+      background: var(--blue-dark);
+    }
+
+    .join-button.joined {
+      color: var(--blue-dark);
+      background: var(--blue-light);
+      box-shadow: none;
+    }
+
+    .empty-state {
+      padding: 75px 10px;
+      text-align: center;
+    }
+
+    .empty-icon {
+      display: grid;
+      width: 60px;
+      height: 60px;
+      margin: auto;
+      place-items: center;
+      border-radius: 20px;
+      background: var(--background);
+      font-size: 27px;
+    }
+
+    .empty-state h3 {
+      margin: 18px 0 8px;
+      font-size: 17px;
+    }
+
+    .empty-state p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .guide {
+      padding: 90px max(24px, calc((100vw - 1120px) / 2)) 110px;
+      background: white;
+    }
+
+    .guide h2 {
+      margin: 0;
+      font-size: 32px;
+      letter-spacing: -1.4px;
+    }
+
+    .guide-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-top: 35px;
+    }
+
+    .guide-item {
+      padding: 28px;
+      border-radius: 20px;
+      background: var(--background);
+    }
+
+    .guide-number {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .guide-item h3 {
+      margin: 16px 0 8px;
+      font-size: 18px;
+    }
+
+    .guide-item p {
+      margin: 0;
+      color: var(--sub-text);
+      font-size: 14px;
+      line-height: 1.65;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      z-index: 30;
+      padding: 14px 22px;
+      border-radius: 13px;
+      color: white;
+      background: rgba(25, 31, 40, 0.94);
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, 15px);
+      transition: 0.25s;
+      font-size: 13px;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    @media (max-width: 850px) {
+      .hero-graphic {
+        width: 250px;
+      }
+
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+
+      .detail-card {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .header {
+        height: 62px;
+        padding: 0 18px;
+      }
+
+      .hero {
+        min-height: 300px;
+        padding: 48px 24px;
+      }
+
+      .hero h1 {
+        font-size: 39px;
+      }
+
+      .hero-description {
+        font-size: 15px;
+      }
+
+      .hero-graphic {
+        display: none;
+      }
+
+      .main-content {
+        padding: 0 10px;
+        margin-bottom: 70px;
+      }
+
+      .calendar-card {
+        padding: 20px 10px;
+        border-radius: 18px;
+      }
+
+      .calendar-header {
+        padding: 0 8px;
+      }
+
+      .day {
+        min-height: 66px;
+        padding: 4px 2px;
+      }
+
+      .event-chip {
+        padding: 4px 3px;
+        font-size: 8px;
+      }
+
+      .people-count {
+        display: none;
+      }
+
+      .detail-card {
+        padding: 24px;
+        border-radius: 18px;
+      }
+
+      .guide {
+        padding-top: 70px;
+        padding-bottom: 80px;
+      }
+
+      .guide-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">✦</span>
+      <span>함께, 탐방</span>
+    </div>
+
+    <div class="profile">민</div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">우리의 다음 목적지</p>
+        <h1>함께 떠날 날을<br>골라보세요</h1>
+
+        <p class="hero-description">
+          캘린더에서 탐방 일정을 확인하고,<br>
+          원하는 일정에 간편하게 참여하세요.
+        </p>
+      </div>
+
+      <div class="hero-graphic" aria-hidden="true">
+        <div class="route"></div>
+        <div class="start-point"></div>
+        <div class="map-pin"></div>
+      </div>
+    </section>
+
+    <section class="main-content">
+      <div class="calendar-card">
+        <div class="calendar-header">
+          <div class="month-navigation">
+            <button id="previousMonth" class="arrow-button" aria-label="이전 달">
+              ‹
+            </button>
+
+            <h2 id="monthTitle"></h2>
+
+            <button id="nextMonth" class="arrow-button" aria-label="다음 달">
+              ›
+            </button>
+          </div>
+
+          <button id="todayButton" class="today-button">
+            오늘
+          </button>
+        </div>
+
+        <div class="weekdays">
+          <span>일</span>
+          <span>월</span>
+          <span>화</span>
+          <span>수</span>
+          <span>목</span>
+          <span>금</span>
+          <span>토</span>
+        </div>
+
+        <div
+          id="calendarGrid"
+          class="calendar-grid"
+          aria-label="탐방 일정 캘린더"
+        ></div>
+      </div>
+
+      <aside class="detail-card" aria-live="polite">
+        <div class="detail-header">
+          <div>
+            <p class="detail-label">선택한 날짜</p>
+            <h2 id="selectedDate"></h2>
+          </div>
+
+          <span id="weather" class="weather">☀️ 맑음</span>
+        </div>
+
+        <div id="eventDetail"></div>
+      </aside>
+    </section>
+
+    <section class="guide">
+      <p class="eyebrow">참여 방법</p>
+      <h2>세 번의 클릭이면 충분해요</h2>
+
+      <div class="guide-grid">
+        <article class="guide-item">
+          <span class="guide-number">01</span>
+          <h3>일정 확인</h3>
+          <p>캘린더에서 탐방이 있는 날을 찾아보세요.</p>
+        </article>
+
+        <article class="guide-item">
+          <span class="guide-number">02</span>
+          <h3>참여 누르기</h3>
+          <p>원하는 탐방을 골라 참여 의사를 남겨요.</p>
+        </article>
+
+        <article class="guide-item">
+          <span class="guide-number">03</span>
+          <h3>함께 출발</h3>
+          <p>모임 장소와 시간을 확인하고 함께 떠나요.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const today = new Date();
+
+    function makeDateKey(year, month, day) {
+      return (
+        year +
+        "-" +
+        String(month + 1).padStart(2, "0") +
+        "-" +
+        String(day).padStart(2, "0")
+      );
+    }
+
+    function relativeDate(monthDifference, day) {
+      const date = new Date(
+        today.getFullYear(),
+        today.getMonth() + monthDifference,
+        day
+      );
+
+      return makeDateKey(
+        date.getFullYear(),
+        date.getMonth(),
+        date.getDate()
+      );
+    }
+
+    const events = {
+      [relativeDate(0, 6)]: {
+        title: "서촌 골목 탐방",
+        type: "도시 탐방",
+        time: "오전 10:30",
+        place: "경복궁역 2번 출구",
+        people: ["지우", "도윤", "서아"],
+        color: ""
+      },
+
+      [relativeDate(0, 12)]: {
+        title: "한강 생태 산책",
+        type: "자연 탐방",
+        time: "오후 2:00",
+        place: "뚝섬유원지역 1번 출구",
+        people: ["유나", "현우", "민준", "하린"],
+        color: "green"
+      },
+
+      [relativeDate(0, 18)]: {
+        title: "성수 건축 투어",
+        type: "건축 탐방",
+        time: "오후 1:30",
+        place: "성수역 3번 출구",
+        people: ["지우", "서준"],
+        color: "orange"
+      },
+
+      [relativeDate(0, 23)]: {
+        title: "북촌 역사 산책",
+        type: "역사 탐방",
+        time: "오전 11:00",
+        place: "안국역 2번 출구",
+        people: ["도윤", "서아", "유나"],
+        color: ""
+      },
+
+      [relativeDate(1, 4)]: {
+        title: "서울숲 아침 산책",
+        type: "자연 탐방",
+        time: "오전 9:00",
+        place: "서울숲역 3번 출구",
+        people: ["하린", "현우"],
+        color: "green"
+      },
+
+      [relativeDate(1, 15)]: {
+        title: "을지로 간판 여행",
+        type: "도시 탐방",
+        time: "오후 4:00",
+        place: "을지로3가역 9번 출구",
+        people: ["민준", "지우", "유나"],
+        color: "orange"
+      }
+    };
+
+    let currentMonth = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      1
+    );
+
+    let selectedKey =
+      Object.keys(events).find(function (key) {
+        const todayKey = makeDateKey(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+
+        return key >= todayKey;
+      }) || Object.keys(events)[0];
+
+    const savedParticipation = JSON.parse(
+      localStorage.getItem("joinedExplorations") || "[]"
+    );
+
+    const joinedEvents = new Set(savedParticipation);
+
+    const calendarGrid = document.getElementById("calendarGrid");
+    const monthTitle = document.getElementById("monthTitle");
+    const selectedDate = document.getElementById("selectedDate");
+    const eventDetail = document.getElementById("eventDetail");
+    const weather = document.getElementById("weather");
+
+    function dateFromKey(key) {
+      const parts = key.split("-").map(Number);
+
+      return new Date(
+        parts[0],
+        parts[1] - 1,
+        parts[2]
+      );
+    }
+
+    function renderCalendar() {
+      const year = currentMonth.getFullYear();
+      const month = currentMonth.getMonth();
+      const firstWeekday = new Date(year, month, 1).getDay();
+      const lastDay = new Date(year, month + 1, 0).getDate();
+
+      monthTitle.textContent =
+        year + "년 " + (month + 1) + "월";
+
+      calendarGrid.innerHTML = "";
+
+      for (let index = 0; index < firstWeekday; index += 1) {
+        const emptyCell = document.createElement("div");
+        emptyCell.className = "day empty";
+        calendarGrid.appendChild(emptyCell);
+      }
+
+      for (let day = 1; day <= lastDay; day += 1) {
+        const key = makeDateKey(year, month, day);
+        const event = events[key];
+        const weekday = new Date(year, month, day).getDay();
+
+        const button = document.createElement("button");
+
+        button.className = "day";
+
+        if (weekday === 0) {
+          button.classList.add("sunday");
+        }
+
+        if (weekday === 6) {
+          button.classList.add("saturday");
+        }
+
+        if (key === selectedKey) {
+          button.classList.add("selected");
+        }
+
+        const todayKey = makeDateKey(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+
+        if (key === todayKey) {
+          button.classList.add("today");
+        }
+
+        let buttonContent =
+          '<span class="day-number">' + day + "</span>";
+
+        if (event) {
+          const joinedNumber = joinedEvents.has(key) ? 1 : 0;
+
+          buttonContent +=
+            '<span class="event-chip ' +
+            event.color +
+            '">' +
+            event.title +
+            "</span>";
+
+          buttonContent +=
+            '<span class="people-count">' +
+            (event.people.length + joinedNumber) +
+            "명 참여</span>";
+        }
+
+        button.innerHTML = buttonContent;
+
+        button.addEventListener("click", function () {
+          selectedKey = key;
+          renderCalendar();
+          renderEventDetail();
+        });
+
+        calendarGrid.appendChild(button);
+      }
+    }
+
+    function renderEventDetail() {
+      const date = dateFromKey(selectedKey);
+      const event = events[selectedKey];
+
+      const weekdayNames = [
+        "일",
+        "월",
+        "화",
+        "수",
+        "목",
+        "금",
+        "토"
+      ];
+
+      selectedDate.textContent =
+        date.getMonth() +
+        1 +
+        "월 " +
+        date.getDate() +
+        "일 " +
+        weekdayNames[date.getDay()] +
+        "요일";
+
+      if (!event) {
+        weather.style.display = "none";
+
+        eventDetail.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🗓️</div>
+            <h3>예정된 탐방이 없어요</h3>
+            <p>
+              다른 날짜를 선택해<br>
+              새로운 탐방을 확인해 보세요.
+            </p>
+          </div>
+        `;
+
+        return;
+      }
+
+      weather.style.display = "inline-block";
+
+      const isJoined = joinedEvents.has(selectedKey);
+      const allPeople = isJoined
+        ? event.people.concat("나")
+        : event.people;
+
+      const faces = allPeople
+        .slice(0, 4)
+        .map(function (person) {
+          return (
+            '<span class="face">' +
+            person.slice(-1) +
+            "</span>"
+          );
+        })
+        .join("");
+
+      eventDetail.innerHTML = `
+        <div class="event-detail">
+          <span class="event-type">${event.type}</span>
+
+          <h3>${event.title}</h3>
+
+          <div class="information">
+            <p>◷ ${event.time}</p>
+            <p>⌖ ${event.place}</p>
+          </div>
+
+          <div class="attendee-box">
+            <strong>${allPeople.length}명이 함께해요</strong>
+            <div class="faces">${faces}</div>
+          </div>
+
+          <button
+            id="joinButton"
+            class="join-button ${isJoined ? "joined" : ""}"
+          >
+            ${
+              isJoined
+                ? "✓ 참여 중이에요"
+                : "이 탐방에 참여하기"
+            }
+          </button>
+        </div>
+      `;
+
+      document
+        .getElementById("joinButton")
+        .addEventListener("click", toggleParticipation);
+    }
+
+    function toggleParticipation() {
+      const isAlreadyJoined = joinedEvents.has(selectedKey);
+
+      if (isAlreadyJoined) {
+        joinedEvents.delete(selectedKey);
+      } else {
+        joinedEvents.add(selectedKey);
+      }
+
+      localStorage.setItem(
+        "joinedExplorations",
+        JSON.stringify(Array.from(joinedEvents))
+      );
+
+      renderCalendar();
+      renderEventDetail();
+
+      showToast(
+        isAlreadyJoined
+          ? "참여가 취소되었어요"
+          : "탐방 참여가 완료되었어요 🎉"
+      );
+    }
+
+    let toastTimer;
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+
+      toast.textContent = message;
+      toast.classList.add("show");
+
+      clearTimeout(toastTimer);
+
+      toastTimer = setTimeout(function () {
+        toast.classList.remove("show");
+      }, 2200);
+    }
+
+    document
+      .getElementById("previousMonth")
+      .addEventListener("click", function () {
+        currentMonth.setMonth(currentMonth.getMonth() - 1);
+        renderCalendar();
+      });
+
+    document
+      .getElementById("nextMonth")
+      .addEventListener("click", function () {
+        currentMonth.setMonth(currentMonth.getMonth() + 1);
+        renderCalendar();
+      });
+
+    document
+      .getElementById("todayButton")
+      .addEventListener("click", function () {
+        currentMonth = new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          1
+        );
+
+        selectedKey = makeDateKey(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+
+        renderCalendar();
+        renderEventDetail();
+      });
+
+    renderCalendar();
+    renderEventDetail();
+  </script>
+</body>
+</html>
