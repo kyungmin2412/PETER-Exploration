@@ -563,28 +563,25 @@
         <h2 id="setupTitle">페테르 탐방에 오신 것을 환영해요</h2>
       </div>
       <p class="setup-copy">
-        팀원들과 같은 캘린더를 보려면 공유 캘린더가 필요해요.<br>
-        처음이라면 새로 만들고, 이미 누군가 만들었다면 받은 초대 링크(코드)를 붙여넣어 주세요.
+        이미 팀원에게 초대 링크(코드)를 받았다면 아래에 붙여넣어 주세요.
       </p>
-      <div class="setup-actions">
-        <button id="createRoomButton" class="setup-primary">새 공유 캘린더 자동으로 만들기</button>
-      </div>
-
-      <div class="setup-divider"><span>또는</span></div>
-
       <div class="invite-box">
         <input id="joinRoomInput" type="text" placeholder="초대 링크 또는 코드를 붙여넣으세요">
         <button id="joinRoomButton">참여하기</button>
       </div>
 
-      <div id="manualCreateHelp" class="manual-help" hidden>
-        <p><strong>자동 생성에 실패했어요.</strong> 아래 방법으로 직접 만들 수 있어요.</p>
+      <div class="setup-divider"><span>처음 만드는 거라면</span></div>
+
+      <div id="manualCreateHelp" class="manual-help">
+        <p>대표 한 명만 딱 한 번, 아래 순서로 캘린더를 만들면 돼요.</p>
         <ol class="manual-steps">
           <li><a href="https://jsonblob.com" target="_blank" rel="noopener">jsonblob.com</a>을 새 탭에서 열어주세요</li>
           <li>편집창 내용을 모두 지우고 <code>{"events":{}}</code> 를 입력한 뒤 Save를 눌러주세요</li>
           <li>저장 후 주소창에 표시된 코드를 복사해서 위 입력창에 붙여넣고 '참여하기'를 눌러주세요</li>
         </ol>
       </div>
+
+      <button id="createRoomButton" class="setup-secondary">자동으로 만들기 시도 (브라우저에 따라 안 될 수 있어요)</button>
 
       <p class="setup-note">※ 캘린더를 만든 뒤에는 상단의 '초대 링크 복사' 버튼으로 팀원들에게 링크를 공유해 주세요. 모두 같은 링크로 접속해야 캘린더가 함께 동기화돼요.</p>
     </div>
@@ -780,18 +777,17 @@
       const createButton = document.getElementById("createRoomButton");
       const manualHelp = document.getElementById("manualCreateHelp");
       createButton.disabled = true;
-      createButton.textContent = "만드는 중...";
+      createButton.textContent = "시도하는 중...";
       try {
         const newRoomId = await remoteCreate({ events: {} });
         commitRoom(newRoomId);
         showToast("공유 캘린더가 생성됐어요");
         setTimeout(openInviteDialog, 400);
       } catch (error) {
-        showToast("자동 생성에 실패했어요. 아래 방법으로 만들어 주세요");
-        manualHelp.hidden = false;
+        showToast("이 브라우저에서는 자동 생성이 지원되지 않아요. 위 안내대로 만들어 주세요");
         manualHelp.scrollIntoView({ behavior: "smooth", block: "nearest" });
         createButton.disabled = false;
-        createButton.textContent = "새 공유 캘린더 자동으로 만들기";
+        createButton.textContent = "자동으로 만들기 시도 (브라우저에 따라 안 될 수 있어요)";
       }
     }
 
