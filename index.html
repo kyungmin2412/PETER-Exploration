@@ -755,6 +755,8 @@
       const value = input.trim();
       const paramMatch = value.match(/[?&]room=([a-zA-Z0-9-]+)/);
       if (paramMatch) return paramMatch[1];
+      const uuidMatch = value.match(/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/);
+      if (uuidMatch) return uuidMatch[0];
       try {
         const url = new URL(value);
         const segments = url.pathname.split("/").filter(Boolean);
