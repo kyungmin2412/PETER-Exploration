@@ -64,6 +64,13 @@
       background: var(--green);
     }
 
+    .main-content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 22px;
+      width: min(100% - 40px, 960px);
+      margin: 0 auto 80px;
+      padding-top: 56px;
     .profile {
       display: grid;
       width: 38px;
@@ -100,6 +107,8 @@
     }
 
     .calendar-card { padding: 30px; }
+
+    .calendar-card, .detail-card { min-width: 0; }
 
     .calendar-header, .detail-header {
       display: flex;
@@ -228,6 +237,23 @@
       font-weight: 700;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    .calendar-participants {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin: 5px 3px 0;
+      overflow: hidden;
+    }
+
+    .participant-dot {
+      padding: 2px 4px;
+      border-radius: 5px;
+      color: white;
+      background: var(--person-color);
+      font-size: 8px;
+      font-weight: 800;
     }
 
     .more-events {
@@ -442,6 +468,20 @@
 
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
+    @media (max-width: 620px) {
+      .header { height: 62px; padding: 0 18px; }
+      .main-content { width: calc(100% - 20px); margin-bottom: 60px; padding-top: 28px; }
+      .calendar-card { padding: 20px 10px; border-radius: 18px; }
+      .calendar-header { padding: 0 8px; }
+      .month-navigation { gap: 5px; }
+      .month-navigation h1 { min-width: 120px; font-size: 19px; }
+      .day { min-width: 0; min-height: 72px; padding: 4px 2px; }
+      .event-chip { padding: 4px 3px; font-size: 8px; }
+      .calendar-participants { gap: 2px; margin: 3px 1px 0; }
+      .participant-dot { padding: 1px 2px; font-size: 7px; }
+      .more-events { display: none; }
+      .detail-card { padding: 22px; border-radius: 18px; }
+
     @media (max-width: 850px) {
       .main-content { grid-template-columns: 1fr; }
       .detail-card { min-height: auto; }
@@ -544,6 +584,7 @@
       <div id="calendarGrid" class="calendar-grid"></div>
     </section>
 
+    <section class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
     <aside class="detail-card" aria-live="polite">
       <div class="detail-header">
         <div>
@@ -582,6 +623,7 @@
         <button id="openEventForm" class="add-button">+ 탐방 추가</button>
       </div>
       <div id="eventList" class="event-list"></div>
+    </section>
     </aside>
   </main>
 
@@ -598,6 +640,7 @@
         </div>
         <div class="form-field">
           <label for="eventTime">시간</label>
+          <input id="eventTime" name="eventTime" type="text" maxlength="30" placeholder="예: 오후 2시 30분" required>
           <input id="eventTime" name="eventTime" type="time" required>
         </div>
         <div class="form-field">
@@ -700,6 +743,26 @@
           chip.textContent = dateEvents[0].company;
           button.appendChild(chip);
 
+          const joinedNames = Array.from(new Set(dateEvents.flatMap(function (dateEvent) {
+            return Array.isArray(dateEvent.joined) ? dateEvent.joined : [];
+          })));
+          if (joinedNames.length > 0) {
+            const joinedList = document.createElement("span");
+            joinedList.className = "calendar-participants";
+            joinedList.setAttribute("aria-label", "참여자: " + joinedNames.join(", "));
+            joinedNames.forEach(function (name) {
+              const participant = participants.find(function (person) { return person.name === name; });
+              if (!participant) return;
+              const dot = document.createElement("span");
+              dot.className = "participant-dot";
+              dot.style.setProperty("--person-color", participant.color);
+              dot.textContent = name;
+              dot.title = name;
+              joinedList.appendChild(dot);
+            });
+            button.appendChild(joinedList);
+          }
+
           if (dateEvents.length > 1) {
             const more = document.createElement("span");
             more.className = "more-events";
@@ -731,6 +794,7 @@
       }
 
       dateEvents.forEach(function (event, eventIndex) {
+        if (!Array.isArray(event.joined)) event.joined = [];
         const item = document.createElement("article");
         item.className = "event-item";
 
@@ -742,6 +806,7 @@
         information.className = "event-information";
         const time = document.createElement("p");
         time.textContent = "◷ " + event.time;
+        information.appendChild(time);
         const place = document.createElement("p");
         place.textContent = "⌖ " + event.place;
         information.append(time, place);
@@ -782,6 +847,7 @@
         showToast(participantName + "님의 참여가 취소됐어요");
       }
       saveEvents();
+      renderCalendar();
       renderEventList();
     }
 
@@ -829,6 +895,10 @@
       const newEvent = {
         company: formData.get("companyName").trim(),
         time: formData.get("eventTime"),
+        joined: []
+      };
+
+      if (!newEvent.company || !newEvent.time.trim()) return;
         place: formData.get("eventPlace").trim(),
         joined: []
       };
