@@ -329,11 +329,14 @@
 
     dialog {
       width: min(430px, calc(100% - 32px));
+      max-height: min(560px, 82vh);
       padding: 0;
       border: 0;
       border-radius: 22px;
       color: var(--text);
       box-shadow: 0 24px 70px rgba(25, 31, 40, 0.22);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     dialog::backdrop { background: rgba(25, 31, 40, 0.45); backdrop-filter: blur(2px); }
@@ -786,6 +789,7 @@
       } catch (error) {
         showToast("자동 생성에 실패했어요. 아래 방법으로 만들어 주세요");
         manualHelp.hidden = false;
+        manualHelp.scrollIntoView({ behavior: "smooth", block: "nearest" });
         createButton.disabled = false;
         createButton.textContent = "새 공유 캘린더 자동으로 만들기";
       }
