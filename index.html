@@ -30,7 +30,7 @@
     }
 
     button, input { font: inherit; }
-    button { border: 0; cursor: pointer; }
+    button { border: 0; cursor: pointer; background: transparent; }
 
     .header {
       position: sticky;
@@ -38,6 +38,7 @@
       z-index: 10;
       display: flex;
       align-items: center;
+      gap: 14px;
       height: 70px;
       padding: 0 max(24px, calc((100vw - 1160px) / 2));
       background: rgba(255, 255, 255, 0.92);
@@ -62,62 +63,79 @@
       border-radius: 11px;
       color: white;
       background: var(--green);
+      font-size: 16px;
     }
 
-    .main-content {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr);
-      gap: 22px;
-      width: min(100% - 40px, 960px);
-      margin: 0 auto 80px;
-      padding-top: 56px;
-    .profile {
-      display: grid;
-      width: 38px;
-      height: 38px;
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-left: auto;
-      place-items: center;
+    }
+
+    .sync-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 11px;
+      border-radius: 20px;
+      background: var(--background);
+      color: var(--sub-text);
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
+      background: var(--muted);
+    }
+
+    .sync-status.online .sync-dot { background: var(--green); }
+    .sync-status.syncing .sync-dot { background: #f5a623; }
+    .sync-status.offline .sync-dot { background: #f04452; }
+
+    .invite-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 14px;
+      border-radius: 20px;
       color: var(--green-dark);
       background: var(--green-light);
+      font-size: 13px;
       font-weight: 700;
+      transition: 0.15s;
     }
 
-    .eyebrow {
-      margin: 0 0 14px;
-      color: var(--green);
-      font-size: 15px;
-      font-weight: 700;
-    }
+    .invite-button:hover { background: #e2f2c6; }
 
     .main-content {
       display: grid;
       grid-template-columns: minmax(600px, 1.8fr) minmax(320px, 0.9fr);
       gap: 22px;
       max-width: 1160px;
-      margin: 0 auto 80px;
       margin: 0 auto 100px;
-      padding: 56px 20px 0;
+      padding: 40px 20px 0;
     }
 
     .calendar-card, .detail-card {
       background: var(--white);
       border-radius: 24px;
       box-shadow: 0 8px 30px rgba(55, 86, 18, 0.08);
+      min-width: 0;
     }
 
     .calendar-card { padding: 30px; }
 
-    .calendar-card, .detail-card { min-width: 0; }
-
-    .calendar-header, .detail-header {
+    .calendar-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
+      margin-bottom: 26px;
     }
-
-    .calendar-header { margin-bottom: 26px; }
 
     .month-navigation {
       display: flex;
@@ -138,8 +156,7 @@
       height: 36px;
       border-radius: 11px;
       color: #4e5968;
-      background: transparent;
-      font-size: 25px;
+      font-size: 22px;
     }
 
     .arrow-button:hover, .today-button:hover { background: var(--green-light); }
@@ -168,13 +185,6 @@
 
     .weekdays span:first-child { color: #f04452; }
     .weekdays span:last-child { color: var(--green-dark); }
-    .weekdays span:first-child {
-      color: #f04452;
-    }
-
-    .weekdays span:last-child {
-      color: var(--green);
-    }
 
     .day {
       min-height: 88px;
@@ -186,16 +196,8 @@
       transition: 0.15s;
     }
 
-    .day:not(.empty):hover { background: #f7faF2; }
+    .day:not(.empty):hover { background: #f7faf2; }
     .day.selected { border-color: #a9cf75; background: #f4fae9; }
-    .day:not(.empty):hover {
-      background: #f7f9fa;
-    }
-
-    .day.selected {
-      border-color: #a9cf75;
-      background: #f4fae9;
-    }
 
     .day-number {
       display: grid;
@@ -210,19 +212,6 @@
     .day.sunday .day-number { color: #f04452; }
     .day.saturday .day-number { color: var(--green-dark); }
     .day.today .day-number { color: white; background: var(--green); font-weight: 700; }
-    .day.sunday .day-number {
-      color: #f04452;
-    }
-
-    .day.saturday .day-number {
-      color: var(--green-dark);
-    }
-
-    .day.today .day-number {
-      color: white;
-      background: var(--green);
-      font-weight: 700;
-    }
 
     .event-chip {
       display: block;
@@ -270,7 +259,10 @@
     }
 
     .detail-header {
+      display: flex;
       align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
       padding-bottom: 22px;
       border-bottom: 1px solid var(--border);
     }
@@ -278,39 +270,16 @@
     .detail-label { margin: 0 0 7px; color: var(--muted); font-size: 12px; }
     .detail-header h2 { margin: 0; font-size: 21px; letter-spacing: -0.7px; }
 
-    .add-button, .submit-button {
+    .add-button {
+      flex: none;
+      padding: 10px 13px;
       border-radius: 12px;
       color: white;
       background: var(--green);
-    .detail-header h2 {
-      margin: 0;
-      font-size: 21px;
-      letter-spacing: -0.7px;
-    }
-
-    .weather {
-      padding: 7px 10px;
-      border-radius: 20px;
-      color: #9b6700;
-      background: #fff7e8;
-      font-size: 11px;
-    }
-
-    .event-detail {
-      padding-top: 25px;
-    }
-
-    .event-type {
-      display: inline-block;
-      padding: 6px 9px;
-      border-radius: 7px;
-      color: var(--green-dark);
-      background: var(--green-light);
-      font-size: 11px;
+      font-size: 13px;
       font-weight: 700;
     }
 
-    .add-button { flex: none; padding: 10px 13px; font-size: 13px; }
     .add-button:hover, .submit-button:hover { background: var(--green-dark); }
 
     .event-list { display: grid; gap: 14px; padding-top: 20px; }
@@ -330,18 +299,6 @@
       margin: 18px 0 10px;
       color: var(--sub-text);
       font-size: 12px;
-    .face {
-      display: grid;
-      width: 30px;
-      height: 30px;
-      margin-left: -7px;
-      place-items: center;
-      border: 2px solid white;
-      border-radius: 50%;
-      color: #4e5968;
-      background: #e4f3ce;
-      font-size: 10px;
-      font-weight: 700;
     }
 
     .participant-list { display: flex; flex-wrap: wrap; gap: 7px; }
@@ -353,17 +310,6 @@
       color: var(--person-color);
       background: white;
       font-size: 12px;
-    .face:nth-child(4) {
-      background: #fef3c7;
-    }
-
-    .join-button {
-      width: 100%;
-      height: 50px;
-      border-radius: 13px;
-      color: white;
-      background: var(--green);
-      box-shadow: 0 8px 18px rgba(120, 184, 42, 0.24);
       font-weight: 700;
       transition: 0.15s;
     }
@@ -372,47 +318,6 @@
       color: white;
       background: var(--person-color);
       box-shadow: 0 3px 8px color-mix(in srgb, var(--person-color) 28%, transparent);
-    .join-button:hover {
-      background: var(--green-dark);
-    }
-
-    .join-button.joined {
-      color: var(--green-dark);
-      background: var(--green-light);
-      box-shadow: none;
-    }
-
-    .empty-state {
-      padding: 75px 10px;
-      text-align: center;
-    }
-
-    .empty-icon {
-      display: grid;
-      width: 60px;
-      height: 60px;
-      margin: auto;
-      place-items: center;
-      border-radius: 20px;
-      background: var(--background);
-      font-size: 27px;
-    }
-
-    .empty-state h3 {
-      margin: 18px 0 8px;
-      font-size: 17px;
-    }
-
-    .empty-state p {
-      margin: 0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-    }
-
-    .guide {
-      padding: 90px max(24px, calc((100vw - 1120px) / 2)) 110px;
-      background: white;
     }
 
     .participant.joined::before { content: "✓ "; }
@@ -432,23 +337,74 @@
     }
 
     dialog::backdrop { background: rgba(25, 31, 40, 0.45); backdrop-filter: blur(2px); }
-    .guide-number {
-      color: var(--green);
-      font-size: 12px;
-      font-weight: 800;
-    }
 
     .dialog-content { padding: 28px; }
     .dialog-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .dialog-header h2 { margin: 0; font-size: 21px; }
     .close-button { width: 34px; height: 34px; border-radius: 50%; color: var(--muted); background: var(--background); font-size: 20px; }
+    .close-button:hover { background: var(--border); }
 
     .event-form { display: grid; gap: 17px; }
     .form-field { display: grid; gap: 8px; }
     .form-field label { font-size: 13px; font-weight: 700; }
-    .form-field input { width: 100%; height: 46px; padding: 0 13px; border: 1px solid var(--border); border-radius: 11px; color: var(--text); outline: none; }
+    .form-field input {
+      width: 100%;
+      height: 46px;
+      padding: 0 13px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      color: var(--text);
+      outline: none;
+    }
     .form-field input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-light); }
-    .submit-button { height: 50px; margin-top: 5px; }
+    .submit-button { width: 100%; height: 50px; margin-top: 5px; border-radius: 13px; color: white; background: var(--green); font-weight: 700; }
+
+    .setup-copy { margin: 0 0 20px; color: var(--sub-text); font-size: 14px; line-height: 1.6; }
+    .setup-actions { display: grid; gap: 10px; }
+    .setup-primary {
+      height: 50px;
+      border-radius: 13px;
+      color: white;
+      background: var(--green);
+      font-weight: 700;
+      font-size: 15px;
+    }
+    .setup-primary:hover { background: var(--green-dark); }
+    .setup-secondary {
+      height: 46px;
+      border-radius: 13px;
+      color: var(--green-dark);
+      background: var(--green-light);
+      font-weight: 700;
+      font-size: 14px;
+    }
+    .setup-secondary:hover { background: #e2f2c6; }
+    .setup-note { margin: 16px 0 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    .invite-box {
+      display: flex;
+      gap: 8px;
+      margin: 0 0 18px;
+    }
+    .invite-box input {
+      flex: 1;
+      height: 46px;
+      padding: 0 13px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      color: var(--sub-text);
+      background: var(--background);
+    }
+    .invite-box button {
+      padding: 0 16px;
+      border-radius: 11px;
+      color: white;
+      background: var(--green);
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .invite-box button:hover { background: var(--green-dark); }
 
     .toast {
       position: fixed;
@@ -464,23 +420,11 @@
       transform: translate(-50%, 15px);
       transition: 0.25s;
       font-size: 13px;
+      max-width: calc(100% - 40px);
+      text-align: center;
     }
 
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
-
-    @media (max-width: 620px) {
-      .header { height: 62px; padding: 0 18px; }
-      .main-content { width: calc(100% - 20px); margin-bottom: 60px; padding-top: 28px; }
-      .calendar-card { padding: 20px 10px; border-radius: 18px; }
-      .calendar-header { padding: 0 8px; }
-      .month-navigation { gap: 5px; }
-      .month-navigation h1 { min-width: 120px; font-size: 19px; }
-      .day { min-width: 0; min-height: 72px; padding: 4px 2px; }
-      .event-chip { padding: 4px 3px; font-size: 8px; }
-      .calendar-participants { gap: 2px; margin: 3px 1px 0; }
-      .participant-dot { padding: 1px 2px; font-size: 7px; }
-      .more-events { display: none; }
-      .detail-card { padding: 22px; border-radius: 18px; }
 
     @media (max-width: 850px) {
       .main-content { grid-template-columns: 1fr; }
@@ -488,72 +432,20 @@
     }
 
     @media (max-width: 620px) {
-      .header { height: 62px; padding: 0 18px; }
-      .main-content { margin-bottom: 60px; padding: 28px 10px 0; }
+      .header { height: 62px; padding: 0 16px; gap: 8px; }
+      .invite-button span.invite-label { display: none; }
+      .sync-status span.sync-label { display: none; }
+      .main-content { margin-bottom: 60px; padding: 24px 12px 0; }
       .calendar-card { padding: 20px 10px; border-radius: 18px; }
       .calendar-header { padding: 0 8px; }
       .month-navigation { gap: 5px; }
-      .month-navigation h1 { min-width: 120px; font-size: 19px; }
+      .month-navigation h1 { min-width: 110px; font-size: 18px; }
       .day { min-height: 66px; padding: 4px 2px; }
       .event-chip { padding: 4px 3px; font-size: 8px; }
+      .calendar-participants { gap: 2px; margin: 3px 1px 0; }
+      .participant-dot { padding: 1px 2px; font-size: 7px; }
       .more-events { display: none; }
-      .detail-card { padding: 22px; border-radius: 18px; }
-      .main-content {
-        grid-template-columns: 1fr;
-      }
-
-      .detail-card {
-        min-height: auto;
-      }
-    }
-
-    @media (max-width: 620px) {
-      .header {
-        height: 62px;
-        padding: 0 18px;
-      }
-
-      .main-content {
-        padding: 32px 10px 0;
-        margin-bottom: 70px;
-      }
-
-      .calendar-card {
-        padding: 20px 10px;
-        border-radius: 18px;
-      }
-
-      .calendar-header {
-        padding: 0 8px;
-      }
-
-      .day {
-        min-height: 66px;
-        padding: 4px 2px;
-      }
-
-      .event-chip {
-        padding: 4px 3px;
-        font-size: 8px;
-      }
-
-      .people-count {
-        display: none;
-      }
-
-      .detail-card {
-        padding: 24px;
-        border-radius: 18px;
-      }
-
-      .guide {
-        padding-top: 70px;
-        padding-bottom: 80px;
-      }
-
-      .guide-grid {
-        grid-template-columns: 1fr;
-      }
+      .detail-card { padding: 20px; border-radius: 18px; }
     }
   </style>
 </head>
@@ -563,6 +455,15 @@
     <div class="logo">
       <span class="logo-icon">✦</span>
       <span>페테르 탐방</span>
+    </div>
+    <div class="header-right">
+      <div id="syncStatus" class="sync-status">
+        <span class="sync-dot"></span>
+        <span class="sync-label" id="syncLabel">연결 중</span>
+      </div>
+      <button id="inviteButton" class="invite-button" title="공유 링크 복사">
+        🔗<span class="invite-label">초대 링크 복사</span>
+      </button>
     </div>
   </header>
 
@@ -584,46 +485,15 @@
       <div id="calendarGrid" class="calendar-grid"></div>
     </section>
 
-    <section class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
-    <aside class="detail-card" aria-live="polite">
+    <aside class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
       <div class="detail-header">
         <div>
           <p class="detail-label">선택한 날짜</p>
           <h2 id="selectedDate"></h2>
-  <main>
-    <section class="main-content">
-      <div class="calendar-card">
-        <div class="calendar-header">
-          <div class="month-navigation">
-            <button id="previousMonth" class="arrow-button" aria-label="이전 달">
-              ‹
-            </button>
-
-            <h2 id="monthTitle"></h2>
-
-            <button id="nextMonth" class="arrow-button" aria-label="다음 달">
-              ›
-            </button>
-          </div>
-
-          <button id="todayButton" class="today-button">
-            오늘
-          </button>
-        </div>
-
-        <div class="weekdays">
-          <span>일</span>
-          <span>월</span>
-          <span>화</span>
-          <span>수</span>
-          <span>목</span>
-          <span>금</span>
-          <span>토</span>
         </div>
         <button id="openEventForm" class="add-button">+ 탐방 추가</button>
       </div>
       <div id="eventList" class="event-list"></div>
-    </section>
     </aside>
   </main>
 
@@ -640,7 +510,6 @@
         </div>
         <div class="form-field">
           <label for="eventTime">시간</label>
-          <input id="eventTime" name="eventTime" type="text" maxlength="30" placeholder="예: 오후 2시 30분" required>
           <input id="eventTime" name="eventTime" type="time" required>
         </div>
         <div class="form-field">
@@ -649,6 +518,37 @@
         </div>
         <button class="submit-button" type="submit">캘린더에 추가하기</button>
       </form>
+    </div>
+  </dialog>
+
+  <dialog id="setupDialog" aria-labelledby="setupTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 id="setupTitle">페테르 탐방에 오신 것을 환영해요</h2>
+      </div>
+      <p class="setup-copy">
+        팀원들과 같은 캘린더를 보려면 공유 캘린더가 필요해요.<br>
+        처음이라면 새로 만들고, 이미 누군가 만들었다면 받은 초대 링크로 들어와 주세요.
+      </p>
+      <div class="setup-actions">
+        <button id="createRoomButton" class="setup-primary">새 공유 캘린더 만들기</button>
+        <button id="joinRoomButton" class="setup-secondary">초대 링크(코드)로 참여하기</button>
+      </div>
+      <p class="setup-note">※ 새로 만든 뒤에는 상단의 '초대 링크 복사' 버튼으로 팀원들에게 링크를 공유해 주세요. 모두 같은 링크로 접속해야 캘린더가 함께 동기화돼요.</p>
+    </div>
+  </dialog>
+
+  <dialog id="inviteDialog" aria-labelledby="inviteTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 id="inviteTitle">초대 링크</h2>
+        <button id="closeInviteDialog" class="close-button" aria-label="닫기">×</button>
+      </div>
+      <p class="setup-copy">이 링크로 접속하면 같은 탐방 캘린더를 공유하고, 실시간으로 동기화돼요.</p>
+      <div class="invite-box">
+        <input id="inviteLinkInput" type="text" readonly>
+        <button id="copyInviteLink">복사</button>
+      </div>
     </div>
   </dialog>
 
@@ -666,11 +566,19 @@
       { name: "재현", color: "#c05298" }
     ];
 
+    const JSONBLOB_BASE = "https://jsonblob.com/api/jsonBlob/";
+    const ROOM_STORAGE_KEY = "peterExplorationRoomId";
+    const CACHE_KEY_PREFIX = "peterExplorationCache_";
+    const POLL_INTERVAL_MS = 6000;
+
     const today = new Date();
     let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     let selectedKey = makeDateKey(today.getFullYear(), today.getMonth(), today.getDate());
-    let events = loadEvents();
+    let events = {};
     let toastTimer;
+    let roomId = null;
+    let pollTimer = null;
+    let syncing = false;
 
     const calendarGrid = document.getElementById("calendarGrid");
     const monthTitle = document.getElementById("monthTitle");
@@ -678,22 +586,13 @@
     const eventList = document.getElementById("eventList");
     const eventDialog = document.getElementById("eventDialog");
     const eventForm = document.getElementById("eventForm");
+    const setupDialog = document.getElementById("setupDialog");
+    const inviteDialog = document.getElementById("inviteDialog");
+    const syncStatusEl = document.getElementById("syncStatus");
+    const syncLabelEl = document.getElementById("syncLabel");
 
     function makeDateKey(year, month, day) {
       return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
-    }
-
-    function loadEvents() {
-      try {
-        const savedEvents = JSON.parse(localStorage.getItem("companyExplorations") || "{}");
-        return savedEvents && typeof savedEvents === "object" ? savedEvents : {};
-      } catch (error) {
-        return {};
-      }
-    }
-
-    function saveEvents() {
-      localStorage.setItem("companyExplorations", JSON.stringify(events));
     }
 
     function formatSelectedDate(key) {
@@ -702,6 +601,214 @@
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
       return month + "월 " + day + "일 " + weekdays[date.getDay()] + "요일";
     }
+
+    function setSyncStatus(state) {
+      syncStatusEl.classList.remove("online", "syncing", "offline");
+      const labels = { online: "동기화됨", syncing: "동기화 중", offline: "오프라인", idle: "연결 중" };
+      if (state !== "idle") syncStatusEl.classList.add(state);
+      syncLabelEl.textContent = labels[state] || "연결 중";
+    }
+
+    function cacheLocal() {
+      if (!roomId) return;
+      try {
+        localStorage.setItem(CACHE_KEY_PREFIX + roomId, JSON.stringify(events));
+      } catch (error) { /* ignore quota errors */ }
+    }
+
+    function loadCache() {
+      if (!roomId) return {};
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY_PREFIX + roomId) || "{}");
+        return cached && typeof cached === "object" ? cached : {};
+      } catch (error) {
+        return {};
+      }
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2400);
+    }
+
+    function buildInviteUrl(id) {
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.searchParams.set("room", id);
+      return url.toString();
+    }
+
+    // ---------- Remote storage (jsonblob.com) ----------
+
+    async function remoteGet(id) {
+      const response = await fetch(JSONBLOB_BASE + id, {
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) throw new Error("GET " + response.status);
+      return response.json();
+    }
+
+    async function remotePut(id, data) {
+      const response = await fetch(JSONBLOB_BASE + id, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error("PUT " + response.status);
+    }
+
+    async function remoteCreate(data) {
+      const response = await fetch(JSONBLOB_BASE.slice(0, -1), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error("POST " + response.status);
+      const location = response.headers.get("Location");
+      if (!location) throw new Error("no location header");
+      const parts = location.split("/");
+      return parts[parts.length - 1];
+    }
+
+    // ---------- Room bootstrap ----------
+
+    function getRoomFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("room");
+    }
+
+    async function initRoom() {
+      const urlRoom = getRoomFromUrl();
+      if (urlRoom) {
+        roomId = urlRoom;
+        localStorage.setItem(ROOM_STORAGE_KEY, roomId);
+        startSync();
+        return;
+      }
+
+      const savedRoom = localStorage.getItem(ROOM_STORAGE_KEY);
+      if (savedRoom) {
+        roomId = savedRoom;
+        const url = new URL(window.location.href);
+        url.searchParams.set("room", roomId);
+        window.history.replaceState({}, "", url);
+        startSync();
+        return;
+      }
+
+      setupDialog.showModal();
+    }
+
+    async function handleCreateRoom() {
+      const createButton = document.getElementById("createRoomButton");
+      createButton.disabled = true;
+      createButton.textContent = "만드는 중...";
+      try {
+        const newRoomId = await remoteCreate({ events: {} });
+        roomId = newRoomId;
+        localStorage.setItem(ROOM_STORAGE_KEY, roomId);
+        const url = new URL(window.location.href);
+        url.searchParams.set("room", roomId);
+        window.history.replaceState({}, "", url);
+        setupDialog.close();
+        startSync();
+        showToast("공유 캘린더가 생성됐어요");
+        setTimeout(openInviteDialog, 400);
+      } catch (error) {
+        showToast("생성에 실패했어요. 잠시 후 다시 시도해 주세요");
+        createButton.disabled = false;
+        createButton.textContent = "새 공유 캘린더 만들기";
+      }
+    }
+
+    function handleJoinRoom() {
+      const input = window.prompt("팀원에게 받은 초대 링크 또는 코드를 붙여넣어 주세요");
+      if (!input) return;
+      let id = input.trim();
+      const match = id.match(/room=([a-zA-Z0-9-]+)/);
+      if (match) id = match[1];
+      if (!id) return;
+      roomId = id;
+      localStorage.setItem(ROOM_STORAGE_KEY, roomId);
+      const url = new URL(window.location.href);
+      url.searchParams.set("room", roomId);
+      window.history.replaceState({}, "", url);
+      setupDialog.close();
+      startSync();
+    }
+
+    function openInviteDialog() {
+      if (!roomId) {
+        setupDialog.showModal();
+        return;
+      }
+      document.getElementById("inviteLinkInput").value = buildInviteUrl(roomId);
+      inviteDialog.showModal();
+    }
+
+    // ---------- Sync loop ----------
+
+    function startSync() {
+      events = loadCache();
+      renderCalendar();
+      renderEventList();
+      fetchRemoteEvents();
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = setInterval(function () {
+        if (document.visibilityState === "visible") fetchRemoteEvents();
+      }, POLL_INTERVAL_MS);
+      document.addEventListener("visibilitychange", function () {
+        if (document.visibilityState === "visible") fetchRemoteEvents();
+      });
+    }
+
+    async function fetchRemoteEvents() {
+      if (!roomId || syncing) return;
+      setSyncStatus("syncing");
+      try {
+        const remote = await remoteGet(roomId);
+        events = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        cacheLocal();
+        renderCalendar();
+        renderEventList();
+        setSyncStatus("online");
+      } catch (error) {
+        setSyncStatus("offline");
+      }
+    }
+
+    async function pushDateKey(dateKey) {
+      if (!roomId) return;
+      syncing = true;
+      setSyncStatus("syncing");
+      const localDateEvents = events[dateKey];
+      try {
+        let remote;
+        try {
+          remote = await remoteGet(roomId);
+        } catch (error) {
+          remote = { events: {} };
+        }
+        const mergedEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        mergedEvents[dateKey] = localDateEvents;
+        await remotePut(roomId, { events: mergedEvents });
+        events = mergedEvents;
+        cacheLocal();
+        setSyncStatus("online");
+      } catch (error) {
+        setSyncStatus("offline");
+        cacheLocal();
+      } finally {
+        syncing = false;
+        renderCalendar();
+        renderEventList();
+      }
+    }
+
+    // ---------- Rendering ----------
 
     function renderCalendar() {
       const year = currentMonth.getFullYear();
@@ -806,7 +913,6 @@
         information.className = "event-information";
         const time = document.createElement("p");
         time.textContent = "◷ " + event.time;
-        information.appendChild(time);
         const place = document.createElement("p");
         place.textContent = "⌖ " + event.place;
         information.append(time, place);
@@ -837,7 +943,9 @@
     }
 
     function toggleParticipant(eventIndex, participantName) {
-      const joined = events[selectedKey][eventIndex].joined;
+      const dateEvents = events[selectedKey];
+      if (!Array.isArray(dateEvents) || !dateEvents[eventIndex]) return;
+      const joined = dateEvents[eventIndex].joined;
       const joinedIndex = joined.indexOf(participantName);
       if (joinedIndex === -1) {
         joined.push(participantName);
@@ -846,18 +954,12 @@
         joined.splice(joinedIndex, 1);
         showToast(participantName + "님의 참여가 취소됐어요");
       }
-      saveEvents();
       renderCalendar();
       renderEventList();
+      pushDateKey(selectedKey);
     }
 
-    function showToast(message) {
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.classList.add("show");
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(function () { toast.classList.remove("show"); }, 2200);
-    }
+    // ---------- Event wiring ----------
 
     document.getElementById("previousMonth").addEventListener("click", function () {
       currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1);
@@ -895,10 +997,6 @@
       const newEvent = {
         company: formData.get("companyName").trim(),
         time: formData.get("eventTime"),
-        joined: []
-      };
-
-      if (!newEvent.company || !newEvent.time.trim()) return;
         place: formData.get("eventPlace").trim(),
         joined: []
       };
@@ -906,16 +1004,41 @@
       if (!newEvent.company || !newEvent.time || !newEvent.place) return;
       if (!Array.isArray(events[selectedKey])) events[selectedKey] = [];
       events[selectedKey].push(newEvent);
-      saveEvents();
       eventForm.reset();
       eventDialog.close();
       renderCalendar();
       renderEventList();
       showToast(newEvent.company + " 탐방이 추가됐어요");
+      pushDateKey(selectedKey);
+    });
+
+    document.getElementById("createRoomButton").addEventListener("click", handleCreateRoom);
+    document.getElementById("joinRoomButton").addEventListener("click", handleJoinRoom);
+
+    document.getElementById("inviteButton").addEventListener("click", openInviteDialog);
+    document.getElementById("closeInviteDialog").addEventListener("click", function () {
+      inviteDialog.close();
+    });
+    inviteDialog.addEventListener("click", function (event) {
+      if (event.target === inviteDialog) inviteDialog.close();
+    });
+
+    document.getElementById("copyInviteLink").addEventListener("click", async function () {
+      const input = document.getElementById("inviteLinkInput");
+      input.select();
+      try {
+        await navigator.clipboard.writeText(input.value);
+        showToast("초대 링크가 복사됐어요");
+      } catch (error) {
+        document.execCommand("copy");
+        showToast("초대 링크가 복사됐어요");
+      }
     });
 
     renderCalendar();
     renderEventList();
+    setSyncStatus("idle");
+    initRoom();
   </script>
 </body>
 </html>
