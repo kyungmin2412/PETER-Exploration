@@ -3,18 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>함께, 탐방</title>
+  <title>페테르 탐방</title>
 
   <style>
     :root {
-      --blue: #3182f6;
-      --blue-dark: #1b64da;
-      --blue-light: #e8f3ff;
+      --green: #78b82a;
+      --green-dark: #4f8618;
+      --green-light: #eff9df;
       --text: #191f28;
       --sub-text: #6b7684;
       --muted: #8b95a1;
-      --background: #f4f6f8;
-      --border: #e5e8eb;
+      --background: #f5faed;
+      --border: #dce9ca;
       --white: #ffffff;
       font-family:
         -apple-system,
@@ -54,8 +54,8 @@
       align-items: center;
       height: 70px;
       padding: 0 max(24px, calc((100vw - 1160px) / 2));
-      background: rgba(255, 255, 255, 0.92);
-      border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+      background: rgba(249, 253, 243, 0.92);
+      border-bottom: 1px solid rgba(103, 151, 42, 0.14);
       backdrop-filter: blur(15px);
     }
 
@@ -75,7 +75,7 @@
       place-items: center;
       border-radius: 11px;
       color: white;
-      background: var(--blue);
+      background: var(--green);
     }
 
     .profile {
@@ -85,89 +85,16 @@
       margin-left: auto;
       place-items: center;
       border-radius: 50%;
-      color: var(--blue-dark);
-      background: var(--blue-light);
+      color: var(--green-dark);
+      background: var(--green-light);
       font-weight: 700;
-    }
-
-    .hero {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      max-width: 1160px;
-      min-height: 330px;
-      margin: 0 auto;
-      padding: 64px 30px;
     }
 
     .eyebrow {
       margin: 0 0 14px;
-      color: var(--blue);
+      color: var(--green);
       font-size: 15px;
       font-weight: 700;
-    }
-
-    .hero h1 {
-      margin: 0;
-      font-size: clamp(40px, 5vw, 56px);
-      line-height: 1.23;
-      letter-spacing: -2.5px;
-    }
-
-    .hero-description {
-      margin: 22px 0 0;
-      color: var(--sub-text);
-      font-size: 17px;
-      line-height: 1.7;
-      letter-spacing: -0.3px;
-    }
-
-    .hero-graphic {
-      position: relative;
-      width: 330px;
-      height: 190px;
-    }
-
-    .route {
-      position: absolute;
-      top: 92px;
-      left: 15px;
-      width: 260px;
-      border-top: 5px dotted #d7dde4;
-      transform: rotate(-9deg);
-    }
-
-    .start-point {
-      position: absolute;
-      bottom: 48px;
-      left: 15px;
-      width: 17px;
-      height: 17px;
-      border-radius: 50%;
-      background: var(--blue);
-    }
-
-    .map-pin {
-      position: absolute;
-      top: 20px;
-      right: 25px;
-      width: 70px;
-      height: 70px;
-      border-radius: 50% 50% 50% 10%;
-      background: var(--blue);
-      box-shadow: 0 18px 30px rgba(49, 130, 246, 0.25);
-      transform: rotate(-45deg);
-    }
-
-    .map-pin::after {
-      position: absolute;
-      top: 22px;
-      left: 22px;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      background: white;
-      content: "";
     }
 
     .main-content {
@@ -176,14 +103,15 @@
       gap: 22px;
       max-width: 1160px;
       margin: 0 auto 100px;
-      padding: 0 20px;
+      padding: 54px 20px 0;
     }
 
     .calendar-card,
     .detail-card {
       background: var(--white);
       border-radius: 24px;
-      box-shadow: 0 8px 30px rgba(0, 27, 55, 0.06);
+      border: 1px solid rgba(120, 184, 42, 0.1);
+      box-shadow: 0 8px 30px rgba(79, 134, 24, 0.08);
     }
 
     .calendar-card {
@@ -252,7 +180,7 @@
     }
 
     .weekdays span:last-child {
-      color: var(--blue);
+      color: var(--green);
     }
 
     .day {
@@ -266,12 +194,12 @@
     }
 
     .day:not(.empty):hover {
-      background: #f7f9fa;
+      background: #f7fbed;
     }
 
     .day.selected {
-      border-color: #90c2ff;
-      background: #f2f8ff;
+      border-color: #a9d66f;
+      background: #f3fae8;
     }
 
     .day-number {
@@ -289,12 +217,12 @@
     }
 
     .day.saturday .day-number {
-      color: var(--blue);
+      color: var(--green);
     }
 
     .day.today .day-number {
       color: white;
-      background: var(--blue);
+      background: var(--green);
       font-weight: 700;
     }
 
@@ -305,8 +233,8 @@
       padding: 6px;
       overflow: hidden;
       border-radius: 7px;
-      color: var(--blue-dark);
-      background: var(--blue-light);
+      color: var(--green-dark);
+      background: var(--green-light);
       font-size: 10px;
       font-weight: 700;
       text-overflow: ellipsis;
@@ -314,13 +242,13 @@
     }
 
     .event-chip.green {
-      color: #13986b;
-      background: #e8faf2;
+      color: #568d1e;
+      background: #eaf7d8;
     }
 
     .event-chip.orange {
-      color: #e87700;
-      background: #fff4e8;
+      color: #728b19;
+      background: #f4f8d9;
     }
 
     .people-count {
@@ -372,8 +300,8 @@
       display: inline-block;
       padding: 6px 9px;
       border-radius: 7px;
-      color: var(--blue);
-      background: var(--blue-light);
+      color: var(--green);
+      background: var(--green-light);
       font-size: 11px;
       font-weight: 700;
     }
@@ -420,21 +348,21 @@
       border: 2px solid white;
       border-radius: 50%;
       color: #4e5968;
-      background: #dbeafe;
+      background: #e3f2ca;
       font-size: 10px;
       font-weight: 700;
     }
 
     .face:nth-child(2) {
-      background: #fee2e2;
+      background: #edf5cc;
     }
 
     .face:nth-child(3) {
-      background: #dcfce7;
+      background: #d8edb8;
     }
 
     .face:nth-child(4) {
-      background: #fef3c7;
+      background: #f2f6c9;
     }
 
     .join-button {
@@ -442,18 +370,18 @@
       height: 50px;
       border-radius: 13px;
       color: white;
-      background: var(--blue);
-      box-shadow: 0 8px 18px rgba(49, 130, 246, 0.22);
+      background: var(--green);
+      box-shadow: 0 8px 18px rgba(120, 184, 42, 0.25);
       font-weight: 700;
     }
 
     .join-button:hover {
-      background: var(--blue-dark);
+      background: var(--green-dark);
     }
 
     .join-button.joined {
-      color: var(--blue-dark);
-      background: var(--blue-light);
+      color: var(--green-dark);
+      background: var(--green-light);
       box-shadow: none;
     }
 
@@ -510,7 +438,7 @@
     }
 
     .guide-number {
-      color: var(--blue);
+      color: var(--green);
       font-size: 12px;
       font-weight: 800;
     }
@@ -549,10 +477,6 @@
     }
 
     @media (max-width: 850px) {
-      .hero-graphic {
-        width: 250px;
-      }
-
       .main-content {
         grid-template-columns: 1fr;
       }
@@ -568,25 +492,8 @@
         padding: 0 18px;
       }
 
-      .hero {
-        min-height: 300px;
-        padding: 48px 24px;
-      }
-
-      .hero h1 {
-        font-size: 39px;
-      }
-
-      .hero-description {
-        font-size: 15px;
-      }
-
-      .hero-graphic {
-        display: none;
-      }
-
       .main-content {
-        padding: 0 10px;
+        padding: 32px 10px 0;
         margin-bottom: 70px;
       }
 
@@ -634,31 +541,13 @@
   <header class="header">
     <div class="logo">
       <span class="logo-icon">✦</span>
-      <span>함께, 탐방</span>
+      <span>페테르 탐방</span>
     </div>
 
     <div class="profile">민</div>
   </header>
 
   <main>
-    <section class="hero">
-      <div>
-        <p class="eyebrow">우리의 다음 목적지</p>
-        <h1>함께 떠날 날을<br>골라보세요</h1>
-
-        <p class="hero-description">
-          캘린더에서 탐방 일정을 확인하고,<br>
-          원하는 일정에 간편하게 참여하세요.
-        </p>
-      </div>
-
-      <div class="hero-graphic" aria-hidden="true">
-        <div class="route"></div>
-        <div class="start-point"></div>
-        <div class="map-pin"></div>
-      </div>
-    </section>
-
     <section class="main-content">
       <div class="calendar-card">
         <div class="calendar-header">
