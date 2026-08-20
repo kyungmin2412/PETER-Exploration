@@ -569,22 +569,33 @@
       }
     }
 
+    const pendingKeys = new Set();
+
     async function fetchRemoteEvents() {
       if (syncing) return;
       setSyncStatus("syncing");
       try {
         const remote = await remoteGet();
-        events = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        const remoteEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        pendingKeys.forEach(function (key) { remoteEvents[key] = events[key]; });
+        events = remoteEvents;
         cacheLocal();
         renderCalendar();
         renderEventList();
-        setSyncStatus("online");
+        setSyncStatus(pendingKeys.size > 0 ? "offline" : "online");
       } catch (error) {
         setSyncStatus("offline");
       }
+      if (pendingKeys.size > 0) retryPending();
+    }
+
+    function retryPending() {
+      const nextKey = pendingKeys.values().next().value;
+      if (nextKey !== undefined) syncDateKey(nextKey);
     }
 
     async function syncDateKey(dateKey) {
+      pendingKeys.add(dateKey);
       syncing = true;
       setSyncStatus("syncing");
       const localDateEvents = events[dateKey];
@@ -596,11 +607,13 @@
           remote = { events: {} };
         }
         const mergedEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        pendingKeys.forEach(function (key) { if (key !== dateKey) mergedEvents[key] = events[key]; });
         mergedEvents[dateKey] = localDateEvents;
         await remotePut({ events: mergedEvents });
         events = mergedEvents;
+        pendingKeys.delete(dateKey);
         cacheLocal();
-        setSyncStatus("online");
+        setSyncStatus(pendingKeys.size > 0 ? "offline" : "online");
       } catch (error) {
         setSyncStatus("offline");
         cacheLocal();
@@ -614,7 +627,9 @@
     function startSync() {
       fetchRemoteEvents();
       setInterval(function () {
-        if (document.visibilityState === "visible") fetchRemoteEvents();
+        if (document.visibilityState !== "visible") return;
+        if (pendingKeys.size > 0) retryPending();
+        else fetchRemoteEvents();
       }, POLL_INTERVAL_MS);
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "visible") fetchRemoteEvents();
