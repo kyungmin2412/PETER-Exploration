@@ -115,6 +115,50 @@
       margin-bottom: 26px;
     }
 
+    .search-row { margin-bottom: 18px; }
+    .search-row input {
+      width: 100%;
+      height: 46px;
+      padding: 0 15px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      color: var(--text);
+      background: var(--background);
+      outline: none;
+    }
+    .search-row input:focus { border-color: var(--green); box-shadow: 0 0 0 3px var(--green-light); background: white; }
+
+    .search-results { display: grid; gap: 10px; }
+    .search-results[hidden] { display: none; }
+    .search-results-count { margin: 0 0 4px; color: var(--muted); font-size: 12px; }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fcfef9;
+      text-align: left;
+      transition: 0.15s;
+    }
+    .search-result-item:hover { border-color: #a9cf75; background: var(--green-light); }
+    .search-result-main h3 { margin: 0 0 5px; font-size: 16px; letter-spacing: -0.4px; }
+    .search-result-main p { margin: 0; color: var(--sub-text); font-size: 12px; }
+    .search-result-date {
+      flex: none;
+      padding: 6px 10px;
+      border-radius: 8px;
+      color: var(--green-dark);
+      background: var(--green-light);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
     .month-navigation {
       display: flex;
       align-items: center;
@@ -152,6 +196,7 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
     }
+    .weekdays[hidden], .calendar-grid[hidden] { display: none; }
 
     .weekdays {
       padding-bottom: 12px;
@@ -402,11 +447,16 @@
         <button id="todayButton" class="today-button">오늘</button>
       </div>
 
-      <div class="weekdays" aria-hidden="true">
+      <div class="search-row">
+        <input id="searchInput" type="text" placeholder="🔍 기업명으로 검색 (예: 하나마이크론)" autocomplete="off">
+      </div>
+
+      <div class="weekdays" id="weekdaysRow" aria-hidden="true">
         <span>일</span><span>월</span><span>화</span><span>수</span>
         <span>목</span><span>금</span><span>토</span>
       </div>
       <div id="calendarGrid" class="calendar-grid"></div>
+      <div id="searchResults" class="search-results" hidden></div>
     </section>
 
     <aside class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
@@ -475,6 +525,7 @@
     let syncing = false;
 
     const calendarGrid = document.getElementById("calendarGrid");
+    const weekdaysRow = document.getElementById("weekdaysRow");
     const monthTitle = document.getElementById("monthTitle");
     const selectedDate = document.getElementById("selectedDate");
     const eventList = document.getElementById("eventList");
@@ -482,6 +533,8 @@
     const eventForm = document.getElementById("eventForm");
     const syncStatusEl = document.getElementById("syncStatus");
     const syncLabelEl = document.getElementById("syncLabel");
+    const searchInput = document.getElementById("searchInput");
+    const searchResults = document.getElementById("searchResults");
 
     function makeDateKey(year, month, day) {
       return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
@@ -583,6 +636,7 @@
         cacheLocal();
         renderCalendar();
         renderEventList();
+        refreshSearchIfActive();
         setSyncStatus(pendingKeys.size > 0 ? "offline" : "online");
       } catch (error) {
         setSyncStatus("offline");
@@ -622,6 +676,7 @@
         syncing = false;
         renderCalendar();
         renderEventList();
+        refreshSearchIfActive();
       }
     }
 
@@ -636,6 +691,84 @@
         if (document.visibilityState === "visible") fetchRemoteEvents();
       });
     }
+
+    // ---------- Search ----------
+
+    function findMatches(query) {
+      const needle = query.trim().toLowerCase();
+      if (!needle) return [];
+      const matches = [];
+      Object.keys(events).sort().forEach(function (dateKey) {
+        const dateEvents = Array.isArray(events[dateKey]) ? events[dateKey] : [];
+        dateEvents.forEach(function (event) {
+          if (event.company && event.company.toLowerCase().includes(needle)) {
+            matches.push({ dateKey: dateKey, event: event });
+          }
+        });
+      });
+      return matches;
+    }
+
+    function renderSearchResults(query) {
+      const matches = findMatches(query);
+      searchResults.replaceChildren();
+
+      const countLabel = document.createElement("p");
+      countLabel.className = "search-results-count";
+      countLabel.textContent = matches.length > 0
+        ? "'" + query.trim() + "' 탐방 " + matches.length + "건"
+        : "'" + query.trim() + "'(으)로 검색된 탐방이 없어요";
+      searchResults.appendChild(countLabel);
+
+      matches.forEach(function (match) {
+        const item = document.createElement("button");
+        item.className = "search-result-item";
+
+        const main = document.createElement("div");
+        main.className = "search-result-main";
+        const title = document.createElement("h3");
+        title.textContent = match.event.company;
+        const meta = document.createElement("p");
+        meta.textContent = "◷ " + match.event.time + "  ⌖ " + match.event.place;
+        main.append(title, meta);
+
+        const dateBadge = document.createElement("span");
+        dateBadge.className = "search-result-date";
+        dateBadge.textContent = formatSelectedDate(match.dateKey);
+
+        item.append(main, dateBadge);
+        item.addEventListener("click", function () {
+          const [year, month] = match.dateKey.split("-").map(Number);
+          currentMonth = new Date(year, month - 1, 1);
+          selectedKey = match.dateKey;
+          searchInput.value = "";
+          setSearchMode(false);
+          renderCalendar();
+          renderEventList();
+        });
+        searchResults.appendChild(item);
+      });
+    }
+
+    function setSearchMode(isSearching) {
+      weekdaysRow.hidden = isSearching;
+      calendarGrid.hidden = isSearching;
+      searchResults.hidden = !isSearching;
+    }
+
+    function refreshSearchIfActive() {
+      if (searchInput.value.trim()) renderSearchResults(searchInput.value);
+    }
+
+    searchInput.addEventListener("input", function () {
+      const query = searchInput.value;
+      if (!query.trim()) {
+        setSearchMode(false);
+        return;
+      }
+      setSearchMode(true);
+      renderSearchResults(query);
+    });
 
     function renderCalendar() {
       const year = currentMonth.getFullYear();
