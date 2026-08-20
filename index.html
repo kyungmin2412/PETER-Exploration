@@ -527,8 +527,9 @@
     // ---------- Remote storage (GitHub Gist) ----------
 
     async function remoteGet() {
-      const response = await fetch("https://api.github.com/gists/" + GIST_ID, {
-        headers: { Accept: "application/vnd.github+json" }
+      const response = await fetch("https://api.github.com/gists/" + GIST_ID + "?_=" + Date.now(), {
+        headers: { Accept: "application/vnd.github+json" },
+        cache: "no-store"
       });
       if (!response.ok) throw new Error("GET " + response.status);
       const data = await response.json();
