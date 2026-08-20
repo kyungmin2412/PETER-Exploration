@@ -617,8 +617,8 @@
       return gistToken;
     }
 
-    async function remotePut(data) {
-      const token = ensureToken();
+    async function remotePut(data, interactive) {
+      const token = interactive === false ? gistToken : ensureToken();
       if (!token) throw new Error("no token");
       const response = await fetch("https://api.github.com/gists/" + GIST_ID, {
         method: "PATCH",
@@ -661,10 +661,10 @@
 
     function retryPending() {
       const nextKey = pendingKeys.values().next().value;
-      if (nextKey !== undefined) syncDateKey(nextKey);
+      if (nextKey !== undefined) syncDateKey(nextKey, false);
     }
 
-    async function syncDateKey(dateKey) {
+    async function syncDateKey(dateKey, interactive) {
       pendingKeys.add(dateKey);
       syncing = true;
       setSyncStatus("syncing");
@@ -674,7 +674,7 @@
         const mergedEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
         pendingKeys.forEach(function (key) { if (key !== dateKey) mergedEvents[key] = events[key]; });
         mergedEvents[dateKey] = localDateEvents;
-        await remotePut({ events: mergedEvents });
+        await remotePut({ events: mergedEvents }, interactive);
         events = mergedEvents;
         pendingKeys.delete(dateKey);
         cacheLocal();
@@ -693,9 +693,7 @@
     function startSync() {
       fetchRemoteEvents();
       setInterval(function () {
-        if (document.visibilityState !== "visible") return;
-        if (pendingKeys.size > 0) retryPending();
-        else fetchRemoteEvents();
+        if (document.visibilityState === "visible") fetchRemoteEvents();
       }, POLL_INTERVAL_MS);
       document.addEventListener("visibilitychange", function () {
         if (document.visibilityState === "visible") fetchRemoteEvents();
