@@ -314,7 +314,21 @@
       background: #fcfef9;
     }
 
-    .event-item h3 { margin: 0 0 13px; font-size: 19px; letter-spacing: -0.5px; }
+    .event-item-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 13px; }
+    .event-item-header h3 { margin: 0; font-size: 19px; letter-spacing: -0.5px; }
+    .event-item-actions { display: flex; flex: none; gap: 6px; }
+    .icon-button {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      border-radius: 9px;
+      color: var(--sub-text);
+      background: var(--background);
+      font-size: 14px;
+    }
+    .icon-button:hover { background: var(--border); }
+    .icon-button.delete-button:hover { color: #f04452; background: #fde8ea; }
     .event-information { display: grid; gap: 7px; color: var(--sub-text); font-size: 13px; }
     .event-information p { margin: 0; }
 
@@ -448,7 +462,7 @@
       </div>
 
       <div class="search-row">
-        <input id="searchInput" type="text" placeholder="🔍 기업명으로 검색 (예: 하나마이크론)" autocomplete="off">
+        <input id="searchInput" type="text" placeholder="🔍 기업명으로 검색" autocomplete="off">
       </div>
 
       <div class="weekdays" id="weekdaysRow" aria-hidden="true">
@@ -521,6 +535,7 @@
     let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     let selectedKey = makeDateKey(today.getFullYear(), today.getMonth(), today.getDate());
     let events = loadCache();
+    let editingIndex = null;
     let toastTimer;
     let syncing = false;
 
@@ -865,9 +880,36 @@
         const item = document.createElement("article");
         item.className = "event-item";
 
+        const header = document.createElement("div");
+        header.className = "event-item-header";
+
         const title = document.createElement("h3");
         title.textContent = event.company;
-        item.appendChild(title);
+        header.appendChild(title);
+
+        const actions = document.createElement("div");
+        actions.className = "event-item-actions";
+
+        const editButton = document.createElement("button");
+        editButton.className = "icon-button edit-button";
+        editButton.setAttribute("aria-label", "수정");
+        editButton.textContent = "✎";
+        editButton.addEventListener("click", function () {
+          openEventForm(eventIndex);
+        });
+        actions.appendChild(editButton);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "icon-button delete-button";
+        deleteButton.setAttribute("aria-label", "삭제");
+        deleteButton.textContent = "🗑";
+        deleteButton.addEventListener("click", function () {
+          deleteEvent(eventIndex);
+        });
+        actions.appendChild(deleteButton);
+
+        header.appendChild(actions);
+        item.appendChild(header);
 
         const information = document.createElement("div");
         information.className = "event-information";
@@ -936,9 +978,41 @@
       renderEventList();
     });
 
-    document.getElementById("openEventForm").addEventListener("click", function () {
+    function openEventForm(editIndex) {
+      const dialogTitleEl = document.getElementById("dialogTitle");
+      const submitButton = eventForm.querySelector(".submit-button");
+      if (typeof editIndex === "number") {
+        editingIndex = editIndex;
+        const event = events[selectedKey][editIndex];
+        document.getElementById("companyName").value = event.company;
+        document.getElementById("eventTime").value = event.time;
+        document.getElementById("eventPlace").value = event.place;
+        dialogTitleEl.textContent = "탐방 수정";
+        submitButton.textContent = "수정하기";
+      } else {
+        editingIndex = null;
+        eventForm.reset();
+        dialogTitleEl.textContent = "기업 탐방 추가";
+        submitButton.textContent = "캘린더에 추가하기";
+      }
       eventDialog.showModal();
       document.getElementById("companyName").focus();
+    }
+
+    function deleteEvent(eventIndex) {
+      const dateEvents = events[selectedKey];
+      if (!Array.isArray(dateEvents) || !dateEvents[eventIndex]) return;
+      const company = dateEvents[eventIndex].company;
+      if (!window.confirm(company + " 탐방을 삭제할까요?")) return;
+      dateEvents.splice(eventIndex, 1);
+      renderCalendar();
+      renderEventList();
+      showToast(company + " 탐방이 삭제됐어요");
+      syncDateKey(selectedKey);
+    }
+
+    document.getElementById("openEventForm").addEventListener("click", function () {
+      openEventForm();
     });
 
     document.getElementById("closeEventForm").addEventListener("click", function () {
@@ -952,21 +1026,29 @@
     eventForm.addEventListener("submit", function (event) {
       event.preventDefault();
       const formData = new FormData(eventForm);
-      const newEvent = {
-        company: formData.get("companyName").trim(),
-        time: formData.get("eventTime"),
-        place: formData.get("eventPlace").trim(),
-        joined: []
-      };
+      const company = formData.get("companyName").trim();
+      const time = formData.get("eventTime");
+      const place = formData.get("eventPlace").trim();
 
-      if (!newEvent.company || !newEvent.time || !newEvent.place) return;
+      if (!company || !time || !place) return;
       if (!Array.isArray(events[selectedKey])) events[selectedKey] = [];
-      events[selectedKey].push(newEvent);
+
+      if (editingIndex !== null && events[selectedKey][editingIndex]) {
+        const existing = events[selectedKey][editingIndex];
+        existing.company = company;
+        existing.time = time;
+        existing.place = place;
+        showToast(company + " 탐방이 수정됐어요");
+      } else {
+        events[selectedKey].push({ company: company, time: time, place: place, joined: [] });
+        showToast(company + " 탐방이 추가됐어요");
+      }
+
       eventForm.reset();
+      editingIndex = null;
       eventDialog.close();
       renderCalendar();
       renderEventList();
-      showToast(newEvent.company + " 탐방이 추가됐어요");
       syncDateKey(selectedKey);
     });
 
