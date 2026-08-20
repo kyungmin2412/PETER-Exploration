@@ -670,12 +670,7 @@
       setSyncStatus("syncing");
       const localDateEvents = events[dateKey];
       try {
-        let remote;
-        try {
-          remote = await remoteGet();
-        } catch (error) {
-          remote = { events: {} };
-        }
+        const remote = await remoteGet();
         const mergedEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
         pendingKeys.forEach(function (key) { if (key !== dateKey) mergedEvents[key] = events[key]; });
         mergedEvents[dateKey] = localDateEvents;
