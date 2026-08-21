@@ -81,6 +81,45 @@
       font-weight: 600;
     }
 
+    .gcal-button {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 13px;
+      border-radius: 20px;
+      color: var(--green-dark);
+      background: var(--green-light);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: 0.15s;
+    }
+    .gcal-button:hover { background: #e2f2c6; }
+
+    .setup-copy { margin: 0 0 20px; color: var(--sub-text); font-size: 14px; line-height: 1.6; }
+
+    .copy-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .copy-row input {
+      flex: 1;
+      min-width: 0;
+      height: 46px;
+      padding: 0 13px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      color: var(--sub-text);
+      background: var(--background);
+    }
+    .copy-row button {
+      padding: 0 16px;
+      border-radius: 11px;
+      color: white;
+      background: var(--green);
+      font-weight: 700;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .copy-row button:hover { background: var(--green-dark); }
+
     .sync-dot {
       width: 7px;
       height: 7px;
@@ -486,6 +525,7 @@
       <span class="logo-icon">✦</span>
       <span>페테르 탐방</span>
     </div>
+    <button id="gcalButton" class="gcal-button" title="구글 캘린더 연동">📅 구글 캘린더</button>
     <div id="syncStatus" class="sync-status">
       <span class="sync-dot"></span>
       <span id="syncLabel">연결 중</span>
@@ -573,6 +613,24 @@
     </div>
   </dialog>
 
+  <dialog id="gcalDialog" aria-labelledby="gcalDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 id="gcalDialogTitle">구글 캘린더 연동</h2>
+        <button id="closeGcalDialog" class="close-button" aria-label="닫기">×</button>
+      </div>
+      <p class="setup-copy">
+        아래 링크를 복사해서 구글 캘린더에 등록하면, 탐방 일정이 자동으로 구글 캘린더에도 나타나요.<br>
+        (구글 캘린더 → 왼쪽 '다른 캘린더' 옆 + 버튼 → URL로 추가)<br>
+        새로 추가/수정된 일정은 구글이 몇 시간 주기로 가져가서, 바로바로 반영되진 않아요.
+      </p>
+      <div class="copy-row">
+        <input id="gcalUrlInput" type="text" readonly>
+        <button id="copyGcalUrl">복사</button>
+      </div>
+    </div>
+  </dialog>
+
   <div id="toast" class="toast" role="status"></div>
 
   <script>
@@ -592,6 +650,8 @@
     const TOKEN_STORAGE_KEY = "peterExplorationKey";
     const GIST_ID = "dd6c6671134c12aff5b63a4bc2d536e2";
     const GIST_FILENAME = "events.json";
+    const ICS_FILENAME = "events.ics";
+    const GCAL_ICS_URL = "https://gist.githubusercontent.com/kyungmin2412/" + "dd6c6671134c12aff5b63a4bc2d536e2" + "/raw/" + ICS_FILENAME;
     const POLL_INTERVAL_MS = 20000;
 
     let gistToken = localStorage.getItem(TOKEN_STORAGE_KEY) || "";
@@ -690,6 +750,51 @@
       return gistToken;
     }
 
+    function escapeIcsText(text) {
+      return String(text).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+    }
+
+    function formatIcsLocalDateTime(dateKey, time) {
+      const [year, month, day] = dateKey.split("-");
+      const [hour, minute] = (time || "00:00").split(":");
+      return year + month + day + "T" + hour.padStart(2, "0") + minute.padStart(2, "0") + "00";
+    }
+
+    function formatIcsUtcStamp(date) {
+      return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+    }
+
+    function buildIcs(eventsData) {
+      const lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//Peter Exploration//Calendar//KO",
+        "CALSCALE:GREGORIAN",
+        "X-WR-CALNAME:페테르 탐방"
+      ];
+      const stamp = formatIcsUtcStamp(new Date());
+      Object.keys(eventsData || {}).sort().forEach(function (dateKey) {
+        const dateEvents = Array.isArray(eventsData[dateKey]) ? eventsData[dateKey] : [];
+        dateEvents.forEach(function (event, index) {
+          const startLocal = formatIcsLocalDateTime(dateKey, event.time);
+          const joined = Array.isArray(event.joined) ? event.joined : [];
+          lines.push(
+            "BEGIN:VEVENT",
+            "UID:" + dateKey + "-" + index + "@peter-exploration",
+            "DTSTAMP:" + stamp,
+            "DTSTART;TZID=Asia/Seoul:" + startLocal,
+            "DURATION:PT1H",
+            "SUMMARY:" + escapeIcsText(event.company || ""),
+            "LOCATION:" + escapeIcsText(event.place || ""),
+            "DESCRIPTION:" + escapeIcsText(joined.length > 0 ? "참여: " + joined.join(", ") : "참여자 없음"),
+            "END:VEVENT"
+          );
+        });
+      });
+      lines.push("END:VCALENDAR");
+      return lines.join("\r\n") + "\r\n";
+    }
+
     async function remotePut(data, interactive) {
       const token = interactive === false ? gistToken : ensureToken();
       if (!token) throw new Error("no token");
@@ -700,7 +805,12 @@
           Authorization: "token " + token,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ files: { [GIST_FILENAME]: { content: JSON.stringify(data) } } })
+        body: JSON.stringify({
+          files: {
+            [GIST_FILENAME]: { content: JSON.stringify(data) },
+            [ICS_FILENAME]: { content: buildIcs(data.events) }
+          }
+        })
       });
       if (!response.ok) {
         if (response.status === 401) {
@@ -959,6 +1069,28 @@
 
     companyDialog.addEventListener("close", function () {
       currentCompanyName = null;
+    });
+
+    const gcalDialog = document.getElementById("gcalDialog");
+    document.getElementById("gcalButton").addEventListener("click", function () {
+      document.getElementById("gcalUrlInput").value = GCAL_ICS_URL;
+      gcalDialog.showModal();
+    });
+    document.getElementById("closeGcalDialog").addEventListener("click", function () {
+      gcalDialog.close();
+    });
+    gcalDialog.addEventListener("click", function (event) {
+      if (event.target === gcalDialog) gcalDialog.close();
+    });
+    document.getElementById("copyGcalUrl").addEventListener("click", async function () {
+      const input = document.getElementById("gcalUrlInput");
+      input.select();
+      try {
+        await navigator.clipboard.writeText(input.value);
+      } catch (error) {
+        document.execCommand("copy");
+      }
+      showToast("링크가 복사됐어요");
     });
 
     companyLinkForm.addEventListener("submit", function (event) {
