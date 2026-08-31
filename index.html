@@ -175,19 +175,14 @@
     .search-results-count { margin: 0 0 4px; color: var(--muted); font-size: 12px; }
 
     .search-result-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
       width: 100%;
       padding: 14px 16px;
       border: 1px solid var(--border);
       border-radius: 14px;
       background: #fcfef9;
-      text-align: left;
       transition: 0.15s;
     }
-    .search-result-item:hover { border-color: #a9cf75; background: var(--green-light); }
+    .search-result-item:hover { border-color: #a9cf75; }
     .search-result-main h3 { margin: 0 0 5px; font-size: 16px; letter-spacing: -0.4px; }
     .search-result-main p { margin: 0; color: var(--sub-text); font-size: 12px; }
     .search-result-date {
@@ -210,15 +205,12 @@
       padding: 12px 14px;
       border-radius: 12px;
       background: var(--green-light);
-      text-align: left;
-      transition: 0.15s;
     }
-    .company-group-header:hover { background: #e2f2c6; }
     .company-group-name { font-weight: 800; color: var(--green-dark); font-size: 15px; }
     .company-group-badge { font-size: 12px; color: var(--green-dark); font-weight: 700; white-space: nowrap; }
 
-    .company-link-list { display: grid; gap: 8px; margin-top: 16px; }
-    .company-link-item {
+    .link-list { display: grid; gap: 8px; margin-top: 16px; }
+    .link-list-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -228,7 +220,7 @@
       border-radius: 11px;
       background: #fcfef9;
     }
-    .company-link-item a {
+    .link-list-item a {
       min-width: 0;
       overflow: hidden;
       color: var(--green-dark);
@@ -238,7 +230,51 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    .company-link-item a:hover { text-decoration: underline; }
+    .link-list-item a:hover { text-decoration: underline; }
+
+    .link-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .link-chip {
+      display: inline-flex;
+      align-items: center;
+      max-width: 170px;
+      padding: 5px 9px;
+      border-radius: 8px;
+      overflow: hidden;
+      color: var(--green-dark);
+      background: var(--green-light);
+      font-size: 11px;
+      font-weight: 700;
+      text-decoration: none;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .link-chip:hover { background: #e2f2c6; }
+
+    .link-add-button {
+      flex: none;
+      padding: 5px 9px;
+      border-radius: 8px;
+      color: var(--sub-text);
+      background: var(--background);
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    .link-add-button:hover { background: var(--border); }
+
+    .event-links { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); }
+    .event-links-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
+    .event-links-title { color: var(--sub-text); font-size: 12px; font-weight: 700; }
+
+    .search-result-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      text-align: left;
+    }
+    .search-result-links { margin-top: 10px; }
 
     .month-navigation {
       display: flex;
@@ -591,25 +627,25 @@
     </div>
   </dialog>
 
-  <dialog id="companyDialog" aria-labelledby="companyDialogTitle">
+  <dialog id="linkDialog" aria-labelledby="linkDialogTitle">
     <div class="dialog-content">
       <div class="dialog-header">
-        <h2 id="companyDialogTitle">기업명</h2>
-        <button id="closeCompanyDialog" class="close-button" aria-label="닫기">×</button>
+        <h2 id="linkDialogTitle">기업명</h2>
+        <button id="closeLinkDialog" class="close-button" aria-label="닫기">×</button>
       </div>
-      <p class="setup-copy">탐방 관련 자료 링크를 남겨보세요 (리포트, 공시, 회의록 등)</p>
-      <form id="companyLinkForm" class="event-form">
+      <p class="setup-copy">이 탐방과 관련된 자료 링크를 남겨보세요 (리포트, 공시, 회의록 등)</p>
+      <form id="linkForm" class="event-form">
         <div class="form-field">
-          <label for="companyLinkLabel">제목 (선택)</label>
-          <input id="companyLinkLabel" type="text" maxlength="50" placeholder="예: 2026년 3분기 리포트">
+          <label for="linkLabelInput">제목 (선택)</label>
+          <input id="linkLabelInput" type="text" maxlength="50" placeholder="예: 2026년 3분기 리포트">
         </div>
         <div class="form-field">
-          <label for="companyLinkUrl">링크</label>
-          <input id="companyLinkUrl" type="text" placeholder="https://...">
+          <label for="linkUrlInput">링크</label>
+          <input id="linkUrlInput" type="text" placeholder="https://...">
         </div>
         <button class="submit-button" type="submit">링크 추가</button>
       </form>
-      <div id="companyLinkList" class="company-link-list"></div>
+      <div id="linkList" class="link-list"></div>
     </div>
   </dialog>
 
@@ -646,7 +682,7 @@
     ];
 
     const STORAGE_KEY = "peterExplorationEvents";
-    const COMPANY_STORAGE_KEY = "peterExplorationCompanyLinks";
+    const LEGACY_COMPANY_STORAGE_KEY = "peterExplorationCompanyLinks";
     const TOKEN_STORAGE_KEY = "peterExplorationKey";
     const GIST_ID = "dd6c6671134c12aff5b63a4bc2d536e2";
     const GIST_FILENAME = "events.json";
@@ -660,9 +696,9 @@
     let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     let selectedKey = makeDateKey(today.getFullYear(), today.getMonth(), today.getDate());
     let events = loadCache(STORAGE_KEY);
-    let companyLinks = loadCache(COMPANY_STORAGE_KEY);
+    migrateCompanyLinks(events, loadCache(LEGACY_COMPANY_STORAGE_KEY));
     let editingIndex = null;
-    let currentCompanyName = null;
+    let currentLinkTarget = null;
     let toastTimer;
     let syncing = false;
 
@@ -673,9 +709,9 @@
     const eventList = document.getElementById("eventList");
     const eventDialog = document.getElementById("eventDialog");
     const eventForm = document.getElementById("eventForm");
-    const companyDialog = document.getElementById("companyDialog");
-    const companyLinkForm = document.getElementById("companyLinkForm");
-    const companyLinkList = document.getElementById("companyLinkList");
+    const linkDialog = document.getElementById("linkDialog");
+    const linkForm = document.getElementById("linkForm");
+    const linkList = document.getElementById("linkList");
     const syncStatusEl = document.getElementById("syncStatus");
     const syncLabelEl = document.getElementById("syncLabel");
     const searchInput = document.getElementById("searchInput");
@@ -704,8 +740,27 @@
     function cacheLocal() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-        localStorage.setItem(COMPANY_STORAGE_KEY, JSON.stringify(companyLinks));
       } catch (error) { /* ignore quota errors */ }
+    }
+
+    function migrateCompanyLinks(eventsData, legacyCompanyLinks) {
+      if (!legacyCompanyLinks || typeof legacyCompanyLinks !== "object") return;
+      Object.keys(legacyCompanyLinks).forEach(function (companyName) {
+        const legacyLinks = legacyCompanyLinks[companyName];
+        if (!Array.isArray(legacyLinks) || legacyLinks.length === 0) return;
+        Object.keys(eventsData).forEach(function (dateKey) {
+          const dateEvents = eventsData[dateKey];
+          if (!Array.isArray(dateEvents)) return;
+          dateEvents.forEach(function (eventItem) {
+            const hasLinks = Array.isArray(eventItem.links) && eventItem.links.length > 0;
+            if (eventItem.company === companyName && !hasLinks) {
+              eventItem.links = legacyLinks.map(function (link) {
+                return { url: link.url, label: link.label };
+              });
+            }
+          });
+        });
+      });
     }
 
     function showToast(message) {
@@ -822,15 +877,13 @@
     }
 
     const pendingDateKeys = new Set();
-    const pendingCompanyKeys = new Set();
 
     function hasPending() {
-      return pendingDateKeys.size > 0 || pendingCompanyKeys.size > 0;
+      return pendingDateKeys.size > 0;
     }
 
-    function applyPending(remoteEvents, remoteCompanyLinks) {
+    function applyPending(remoteEvents) {
       pendingDateKeys.forEach(function (key) { remoteEvents[key] = events[key]; });
-      pendingCompanyKeys.forEach(function (key) { remoteCompanyLinks[key] = companyLinks[key]; });
     }
 
     async function fetchRemoteEvents() {
@@ -839,15 +892,14 @@
       try {
         const remote = await remoteGet();
         const remoteEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
-        const remoteCompanyLinks = remote && typeof remote.companyLinks === "object" && remote.companyLinks !== null ? remote.companyLinks : {};
-        applyPending(remoteEvents, remoteCompanyLinks);
+        migrateCompanyLinks(remoteEvents, remote && remote.companyLinks);
+        applyPending(remoteEvents);
         events = remoteEvents;
-        companyLinks = remoteCompanyLinks;
         cacheLocal();
         renderCalendar();
         renderEventList();
         refreshSearchIfActive();
-        renderCompanyDialogIfOpen();
+        renderLinkDialogIfOpen();
         setSyncStatus(hasPending() ? "offline" : "online");
       } catch (error) {
         setSyncStatus("offline");
@@ -857,28 +909,23 @@
 
     function retryPending() {
       const nextDateKey = pendingDateKeys.values().next().value;
-      if (nextDateKey !== undefined) { syncDateKey(nextDateKey, false); return; }
-      const nextCompanyKey = pendingCompanyKeys.values().next().value;
-      if (nextCompanyKey !== undefined) syncCompanyLinks(nextCompanyKey, false);
+      if (nextDateKey !== undefined) syncDateKey(nextDateKey, false);
     }
 
-    async function syncChange(kind, key, interactive) {
-      const pendingSet = kind === "events" ? pendingDateKeys : pendingCompanyKeys;
-      pendingSet.add(key);
+    async function syncDateKey(dateKey, interactive) {
+      pendingDateKeys.add(dateKey);
       syncing = true;
       setSyncStatus("syncing");
-      const localValue = kind === "events" ? events[key] : companyLinks[key];
+      const localDateEvents = events[dateKey];
       try {
         const remote = await remoteGet();
         const mergedEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
-        const mergedCompanyLinks = remote && typeof remote.companyLinks === "object" && remote.companyLinks !== null ? remote.companyLinks : {};
-        pendingDateKeys.forEach(function (k) { if (!(kind === "events" && k === key)) mergedEvents[k] = events[k]; });
-        pendingCompanyKeys.forEach(function (k) { if (!(kind === "companyLinks" && k === key)) mergedCompanyLinks[k] = companyLinks[k]; });
-        if (kind === "events") mergedEvents[key] = localValue; else mergedCompanyLinks[key] = localValue;
-        await remotePut({ events: mergedEvents, companyLinks: mergedCompanyLinks }, interactive);
+        migrateCompanyLinks(mergedEvents, remote && remote.companyLinks);
+        pendingDateKeys.forEach(function (k) { if (k !== dateKey) mergedEvents[k] = events[k]; });
+        mergedEvents[dateKey] = localDateEvents;
+        await remotePut({ events: mergedEvents }, interactive);
         events = mergedEvents;
-        companyLinks = mergedCompanyLinks;
-        pendingSet.delete(key);
+        pendingDateKeys.delete(dateKey);
         cacheLocal();
         setSyncStatus(hasPending() ? "offline" : "online");
       } catch (error) {
@@ -889,16 +936,8 @@
         renderCalendar();
         renderEventList();
         refreshSearchIfActive();
-        renderCompanyDialogIfOpen();
+        renderLinkDialogIfOpen();
       }
-    }
-
-    function syncDateKey(dateKey, interactive) {
-      return syncChange("events", dateKey, interactive);
-    }
-
-    function syncCompanyLinks(companyName, interactive) {
-      return syncChange("companyLinks", companyName, interactive);
     }
 
     function startSync() {
@@ -919,9 +958,9 @@
       const matches = [];
       Object.keys(events).sort().forEach(function (dateKey) {
         const dateEvents = Array.isArray(events[dateKey]) ? events[dateKey] : [];
-        dateEvents.forEach(function (event) {
+        dateEvents.forEach(function (event, index) {
           if (event.company && event.company.toLowerCase().includes(needle)) {
-            matches.push({ dateKey: dateKey, event: event });
+            matches.push({ dateKey: dateKey, index: index, event: event });
           }
         });
       });
@@ -954,23 +993,29 @@
         const group = document.createElement("div");
         group.className = "company-group";
 
-        const header = document.createElement("button");
-        header.type = "button";
+        const groupMatches = matchesByCompany[companyName];
+        const totalLinks = groupMatches.reduce(function (sum, match) {
+          return sum + (Array.isArray(match.event.links) ? match.event.links.length : 0);
+        }, 0);
+
+        const header = document.createElement("div");
         header.className = "company-group-header";
         const nameSpan = document.createElement("span");
         nameSpan.className = "company-group-name";
         nameSpan.textContent = companyName;
-        const linkCount = Array.isArray(companyLinks[companyName]) ? companyLinks[companyName].length : 0;
         const badge = document.createElement("span");
         badge.className = "company-group-badge";
-        badge.textContent = "🔗 자료" + (linkCount > 0 ? " " + linkCount : "");
+        badge.textContent = groupMatches.length + "회 방문" + (totalLinks > 0 ? " · 🔗 자료 " + totalLinks : "");
         header.append(nameSpan, badge);
-        header.addEventListener("click", function () { openCompanyDialog(companyName); });
         group.appendChild(header);
 
-        matchesByCompany[companyName].forEach(function (match) {
-          const item = document.createElement("button");
+        groupMatches.forEach(function (match) {
+          const item = document.createElement("div");
           item.className = "search-result-item";
+
+          const navButton = document.createElement("button");
+          navButton.type = "button";
+          navButton.className = "search-result-top";
 
           const main = document.createElement("div");
           main.className = "search-result-main";
@@ -979,9 +1024,9 @@
           const meta = document.createElement("p");
           meta.textContent = "◷ " + match.event.time + "  ⌖ " + match.event.place;
           main.append(title, meta);
-          item.appendChild(main);
+          navButton.appendChild(main);
 
-          item.addEventListener("click", function () {
+          navButton.addEventListener("click", function () {
             const [year, month] = match.dateKey.split("-").map(Number);
             currentMonth = new Date(year, month - 1, 1);
             selectedKey = match.dateKey;
@@ -990,6 +1035,13 @@
             renderCalendar();
             renderEventList();
           });
+          item.appendChild(navButton);
+
+          const linksRow = document.createElement("div");
+          linksRow.className = "search-result-links";
+          linksRow.appendChild(buildLinkChips(match.dateKey, match.index));
+          item.appendChild(linksRow);
+
           group.appendChild(item);
         });
 
@@ -1007,34 +1059,75 @@
       if (searchInput.value.trim()) renderSearchResults(searchInput.value);
     }
 
-    // ---------- Company links ----------
+    // ---------- Per-visit reference links ----------
 
-    function openCompanyDialog(companyName) {
-      currentCompanyName = companyName;
-      document.getElementById("companyDialogTitle").textContent = companyName;
-      renderCompanyLinkList();
-      companyDialog.showModal();
+    function getLinkTargetEvent(target) {
+      if (!target) return null;
+      const dateEvents = events[target.dateKey];
+      if (!Array.isArray(dateEvents) || !dateEvents[target.index]) return null;
+      return dateEvents[target.index];
     }
 
-    function renderCompanyDialogIfOpen() {
-      if (companyDialog.open && currentCompanyName) renderCompanyLinkList();
+    function buildLinkChips(dateKey, index) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "link-chips";
+
+      const targetEvent = getLinkTargetEvent({ dateKey: dateKey, index: index });
+      const links = targetEvent && Array.isArray(targetEvent.links) ? targetEvent.links : [];
+
+      links.forEach(function (link) {
+        const chip = document.createElement("a");
+        chip.className = "link-chip";
+        chip.href = link.url;
+        chip.target = "_blank";
+        chip.rel = "noopener noreferrer";
+        chip.textContent = "🔗 " + (link.label && link.label.trim() ? link.label : link.url);
+        wrapper.appendChild(chip);
+      });
+
+      const addButton = document.createElement("button");
+      addButton.type = "button";
+      addButton.className = "link-add-button";
+      addButton.textContent = links.length > 0 ? "자료 관리" : "+ 자료 링크";
+      addButton.addEventListener("click", function (event) {
+        event.stopPropagation();
+        openLinkDialog(dateKey, index);
+      });
+      wrapper.appendChild(addButton);
+
+      return wrapper;
     }
 
-    function renderCompanyLinkList() {
-      companyLinkList.replaceChildren();
-      const links = Array.isArray(companyLinks[currentCompanyName]) ? companyLinks[currentCompanyName] : [];
+    function openLinkDialog(dateKey, index) {
+      currentLinkTarget = { dateKey: dateKey, index: index };
+      const targetEvent = getLinkTargetEvent(currentLinkTarget);
+      document.getElementById("linkDialogTitle").textContent = targetEvent
+        ? targetEvent.company + " · " + formatSelectedDate(dateKey)
+        : "탐방 자료";
+      renderLinkList();
+      linkDialog.showModal();
+    }
+
+    function renderLinkDialogIfOpen() {
+      if (linkDialog.open && currentLinkTarget) renderLinkList();
+    }
+
+    function renderLinkList() {
+      linkList.replaceChildren();
+      const targetEvent = getLinkTargetEvent(currentLinkTarget);
+      const links = targetEvent && Array.isArray(targetEvent.links) ? targetEvent.links : [];
 
       if (links.length === 0) {
         const empty = document.createElement("p");
         empty.className = "setup-note";
         empty.textContent = "아직 등록된 링크가 없어요.";
-        companyLinkList.appendChild(empty);
+        linkList.appendChild(empty);
         return;
       }
 
       links.forEach(function (link, linkIndex) {
         const item = document.createElement("div");
-        item.className = "company-link-item";
+        item.className = "link-list-item";
 
         const anchor = document.createElement("a");
         anchor.href = link.url;
@@ -1049,26 +1142,27 @@
         removeButton.textContent = "🗑";
         removeButton.addEventListener("click", function () {
           links.splice(linkIndex, 1);
-          renderCompanyLinkList();
+          renderLinkList();
+          renderEventList();
           refreshSearchIfActive();
-          syncCompanyLinks(currentCompanyName);
+          syncDateKey(currentLinkTarget.dateKey);
         });
         item.appendChild(removeButton);
 
-        companyLinkList.appendChild(item);
+        linkList.appendChild(item);
       });
     }
 
-    document.getElementById("closeCompanyDialog").addEventListener("click", function () {
-      companyDialog.close();
+    document.getElementById("closeLinkDialog").addEventListener("click", function () {
+      linkDialog.close();
     });
 
-    companyDialog.addEventListener("click", function (event) {
-      if (event.target === companyDialog) companyDialog.close();
+    linkDialog.addEventListener("click", function (event) {
+      if (event.target === linkDialog) linkDialog.close();
     });
 
-    companyDialog.addEventListener("close", function () {
-      currentCompanyName = null;
+    linkDialog.addEventListener("close", function () {
+      currentLinkTarget = null;
     });
 
     const gcalDialog = document.getElementById("gcalDialog");
@@ -1093,20 +1187,23 @@
       showToast("링크가 복사됐어요");
     });
 
-    companyLinkForm.addEventListener("submit", function (event) {
+    linkForm.addEventListener("submit", function (event) {
       event.preventDefault();
-      const label = document.getElementById("companyLinkLabel").value.trim();
-      let url = document.getElementById("companyLinkUrl").value.trim();
-      if (!url) return;
+      const label = document.getElementById("linkLabelInput").value.trim();
+      let url = document.getElementById("linkUrlInput").value.trim();
+      if (!url || !currentLinkTarget) return;
       if (!/^https?:\/\//i.test(url)) url = "https://" + url;
 
-      if (!Array.isArray(companyLinks[currentCompanyName])) companyLinks[currentCompanyName] = [];
-      companyLinks[currentCompanyName].push({ url: url, label: label });
-      companyLinkForm.reset();
-      renderCompanyLinkList();
+      const targetEvent = getLinkTargetEvent(currentLinkTarget);
+      if (!targetEvent) return;
+      if (!Array.isArray(targetEvent.links)) targetEvent.links = [];
+      targetEvent.links.push({ url: url, label: label });
+      linkForm.reset();
+      renderLinkList();
+      renderEventList();
       refreshSearchIfActive();
       showToast("링크가 추가됐어요");
-      syncCompanyLinks(currentCompanyName);
+      syncDateKey(currentLinkTarget.dateKey);
     });
 
     searchInput.addEventListener("input", function () {
@@ -1274,6 +1371,19 @@
           participantList.appendChild(button);
         });
         item.appendChild(participantList);
+
+        const linksSection = document.createElement("div");
+        linksSection.className = "event-links";
+        const linksHeader = document.createElement("div");
+        linksHeader.className = "event-links-header";
+        const linksTitle = document.createElement("span");
+        linksTitle.className = "event-links-title";
+        linksTitle.textContent = "🔗 자료 링크";
+        linksHeader.appendChild(linksTitle);
+        linksSection.appendChild(linksHeader);
+        linksSection.appendChild(buildLinkChips(selectedKey, eventIndex));
+        item.appendChild(linksSection);
+
         eventList.appendChild(item);
       });
     }
@@ -1374,7 +1484,7 @@
         existing.place = place;
         showToast(company + " 탐방이 수정됐어요");
       } else {
-        events[selectedKey].push({ company: company, time: time, place: place, joined: [] });
+        events[selectedKey].push({ company: company, time: time, place: place, joined: [], links: [] });
         showToast(company + " 탐방이 추가됐어요");
       }
 
