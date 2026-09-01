@@ -326,6 +326,17 @@
     .weekdays span:first-child { color: #f04452; }
     .weekdays span:last-child { color: var(--green-dark); }
 
+    .holiday-label {
+      display: block;
+      margin-top: 3px;
+      overflow: hidden;
+      color: #f04452;
+      font-size: 9px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     .day {
       min-height: 88px;
       padding: 8px 6px;
@@ -351,6 +362,7 @@
 
     .day.sunday .day-number { color: #f04452; }
     .day.saturday .day-number { color: var(--green-dark); }
+    .day.holiday .day-number { color: #f04452; }
     .day.today .day-number { color: white; background: var(--green); font-weight: 700; }
 
     .event-chip {
@@ -681,6 +693,76 @@
       { name: "재현", color: "#c05298" }
     ];
 
+    // 대한민국 공식 공휴일 (대체공휴일 포함). 매년 음력 기반 명절과 임시공휴일이 있어
+    // 손으로 채워둔 표이며, 2025~2027년까지만 반영돼 있어요. 이후 연도는 추가로 갱신이 필요해요.
+    const HOLIDAYS = {
+      "2025-01-01": "신정",
+      "2025-01-27": "임시공휴일",
+      "2025-01-28": "설날 연휴",
+      "2025-01-29": "설날",
+      "2025-01-30": "설날 연휴",
+      "2025-03-01": "삼일절",
+      "2025-03-03": "대체공휴일",
+      "2025-05-05": "어린이날·부처님오신날",
+      "2025-05-06": "대체공휴일",
+      "2025-06-06": "현충일",
+      "2025-08-15": "광복절",
+      "2025-10-03": "개천절",
+      "2025-10-05": "추석 연휴",
+      "2025-10-06": "추석",
+      "2025-10-07": "추석 연휴",
+      "2025-10-08": "대체공휴일",
+      "2025-10-09": "한글날",
+      "2025-12-25": "크리스마스",
+
+      "2026-01-01": "신정",
+      "2026-02-16": "설날 연휴",
+      "2026-02-17": "설날",
+      "2026-02-18": "설날 연휴",
+      "2026-03-01": "삼일절",
+      "2026-03-02": "대체공휴일",
+      "2026-05-01": "근로자의 날",
+      "2026-05-05": "어린이날",
+      "2026-05-24": "부처님오신날",
+      "2026-05-25": "대체공휴일",
+      "2026-06-06": "현충일",
+      "2026-07-17": "제헌절",
+      "2026-08-15": "광복절",
+      "2026-08-17": "대체공휴일",
+      "2026-09-24": "추석 연휴",
+      "2026-09-25": "추석",
+      "2026-09-26": "추석 연휴",
+      "2026-10-03": "개천절",
+      "2026-10-05": "대체공휴일",
+      "2026-10-09": "한글날",
+      "2026-12-25": "크리스마스",
+
+      "2027-01-01": "신정",
+      "2027-02-06": "설날 연휴",
+      "2027-02-07": "설날",
+      "2027-02-08": "설날 연휴",
+      "2027-02-09": "대체공휴일",
+      "2027-03-01": "삼일절",
+      "2027-05-01": "근로자의 날",
+      "2027-05-03": "대체공휴일",
+      "2027-05-05": "어린이날",
+      "2027-05-13": "부처님오신날",
+      "2027-06-06": "현충일",
+      "2027-07-17": "제헌절",
+      "2027-07-19": "대체공휴일",
+      "2027-08-15": "광복절",
+      "2027-08-16": "대체공휴일",
+      "2027-09-14": "추석 연휴",
+      "2027-09-15": "추석",
+      "2027-09-16": "추석 연휴",
+      "2027-10-03": "개천절",
+      "2027-10-04": "대체공휴일",
+      "2027-10-09": "한글날",
+      "2027-10-11": "대체공휴일",
+      "2027-12-25": "크리스마스",
+      "2027-12-27": "대체공휴일"
+    };
+
     const STORAGE_KEY = "peterExplorationEvents";
     const LEGACY_COMPANY_STORAGE_KEY = "peterExplorationCompanyLinks";
     const TOKEN_STORAGE_KEY = "peterExplorationKey";
@@ -725,7 +807,8 @@
       const [year, month, day] = key.split("-").map(Number);
       const date = new Date(year, month - 1, day);
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
-      return month + "월 " + day + "일 " + weekdays[date.getDay()] + "요일";
+      const holidayName = HOLIDAYS[key];
+      return month + "월 " + day + "일 " + weekdays[date.getDay()] + "요일" + (holidayName ? " · " + holidayName : "");
     }
 
     function loadCache(key) {
@@ -1236,12 +1319,14 @@
         const key = makeDateKey(year, month, day);
         const dateEvents = Array.isArray(events[key]) ? events[key] : [];
         const weekday = new Date(year, month, day).getDay();
+        const holidayName = HOLIDAYS[key];
         const button = document.createElement("button");
         button.className = "day";
-        button.setAttribute("aria-label", (month + 1) + "월 " + day + "일, 탐방 " + dateEvents.length + "개");
+        button.setAttribute("aria-label", (month + 1) + "월 " + day + "일" + (holidayName ? ", " + holidayName : "") + ", 탐방 " + dateEvents.length + "개");
 
         if (weekday === 0) button.classList.add("sunday");
         if (weekday === 6) button.classList.add("saturday");
+        if (holidayName) button.classList.add("holiday");
         if (key === selectedKey) button.classList.add("selected");
         if (key === todayKey) button.classList.add("today");
 
@@ -1249,6 +1334,13 @@
         dayNumber.className = "day-number";
         dayNumber.textContent = day;
         button.appendChild(dayNumber);
+
+        if (holidayName) {
+          const holidayLabel = document.createElement("span");
+          holidayLabel.className = "holiday-label";
+          holidayLabel.textContent = holidayName;
+          button.appendChild(holidayLabel);
+        }
 
         if (dateEvents.length > 0) {
           const chip = document.createElement("span");
