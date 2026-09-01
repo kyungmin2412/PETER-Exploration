@@ -220,8 +220,10 @@
       border-radius: 11px;
       background: #fcfef9;
     }
+    .link-list-item-main { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; }
     .link-list-item a {
       min-width: 0;
+      max-width: 100%;
       overflow: hidden;
       color: var(--green-dark);
       font-weight: 700;
@@ -232,7 +234,32 @@
     }
     .link-list-item a:hover { text-decoration: underline; }
 
+    .link-password {
+      flex: none;
+      padding: 3px 8px;
+      border-radius: 7px;
+      color: #b8860b;
+      background: #fdf3d9;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .view-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+    .view-tab {
+      padding: 9px 15px;
+      border-radius: 10px;
+      color: var(--sub-text);
+      background: var(--background);
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .view-tab:hover { background: var(--border); }
+    .view-tab.active { color: white; background: var(--green); }
+    .view-tab.active:hover { background: var(--green-dark); }
+
     .link-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .link-chip-pair { display: inline-flex; align-items: center; gap: 4px; }
     .link-chip {
       display: inline-flex;
       align-items: center;
@@ -587,25 +614,34 @@
 
   <main class="main-content">
     <section class="calendar-card" aria-label="기업 탐방 캘린더">
-      <div class="calendar-header">
-        <div class="month-navigation">
-          <button id="previousMonth" class="arrow-button" aria-label="이전 달">‹</button>
-          <h1 id="monthTitle"></h1>
-          <button id="nextMonth" class="arrow-button" aria-label="다음 달">›</button>
+      <div class="view-tabs">
+        <button id="calendarTabButton" type="button" class="view-tab active">📅 캘린더</button>
+        <button id="directoryTabButton" type="button" class="view-tab">🏢 기업 목록</button>
+      </div>
+
+      <div id="calendarView">
+        <div class="calendar-header">
+          <div class="month-navigation">
+            <button id="previousMonth" class="arrow-button" aria-label="이전 달">‹</button>
+            <h1 id="monthTitle"></h1>
+            <button id="nextMonth" class="arrow-button" aria-label="다음 달">›</button>
+          </div>
+          <button id="todayButton" class="today-button">오늘</button>
         </div>
-        <button id="todayButton" class="today-button">오늘</button>
+
+        <div class="search-row">
+          <input id="searchInput" type="text" placeholder="🔍 기업명으로 검색" autocomplete="off">
+        </div>
+
+        <div class="weekdays" id="weekdaysRow" aria-hidden="true">
+          <span>일</span><span>월</span><span>화</span><span>수</span>
+          <span>목</span><span>금</span><span>토</span>
+        </div>
+        <div id="calendarGrid" class="calendar-grid"></div>
+        <div id="searchResults" class="search-results" hidden></div>
       </div>
 
-      <div class="search-row">
-        <input id="searchInput" type="text" placeholder="🔍 기업명으로 검색" autocomplete="off">
-      </div>
-
-      <div class="weekdays" id="weekdaysRow" aria-hidden="true">
-        <span>일</span><span>월</span><span>화</span><span>수</span>
-        <span>목</span><span>금</span><span>토</span>
-      </div>
-      <div id="calendarGrid" class="calendar-grid"></div>
-      <div id="searchResults" class="search-results" hidden></div>
+      <div id="directoryView" class="search-results" hidden></div>
     </section>
 
     <aside class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
@@ -659,6 +695,10 @@
         <div class="form-field">
           <label for="linkUrlInput">링크</label>
           <input id="linkUrlInput" type="text" placeholder="https://...">
+        </div>
+        <div class="form-field">
+          <label for="linkPasswordInput">비밀번호 (선택, 다 같이 볼 수 있어요)</label>
+          <input id="linkPasswordInput" type="text" maxlength="50" placeholder="예: 1234">
         </div>
         <button class="submit-button" type="submit">링크 추가</button>
       </form>
@@ -803,6 +843,10 @@
     const syncLabelEl = document.getElementById("syncLabel");
     const searchInput = document.getElementById("searchInput");
     const searchResults = document.getElementById("searchResults");
+    const calendarTabButton = document.getElementById("calendarTabButton");
+    const directoryTabButton = document.getElementById("directoryTabButton");
+    const calendarView = document.getElementById("calendarView");
+    const directoryView = document.getElementById("directoryView");
 
     function makeDateKey(year, month, day) {
       return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
@@ -987,6 +1031,7 @@
         renderCalendar();
         renderEventList();
         refreshSearchIfActive();
+        renderDirectoryIfActive();
         renderLinkDialogIfOpen();
         setSyncStatus(hasPending() ? "offline" : "online");
       } catch (error) {
@@ -1024,6 +1069,7 @@
         renderCalendar();
         renderEventList();
         refreshSearchIfActive();
+        renderDirectoryIfActive();
         renderLinkDialogIfOpen();
       }
     }
@@ -1040,32 +1086,37 @@
 
     // ---------- Search ----------
 
-    function findMatches(query) {
-      const needle = query.trim().toLowerCase();
-      if (!needle) return [];
+    function collectAllMatches() {
       const matches = [];
       Object.keys(events).sort().forEach(function (dateKey) {
         const dateEvents = Array.isArray(events[dateKey]) ? events[dateKey] : [];
         dateEvents.forEach(function (event, index) {
-          if (event.company && event.company.toLowerCase().includes(needle)) {
-            matches.push({ dateKey: dateKey, index: index, event: event });
-          }
+          if (event.company) matches.push({ dateKey: dateKey, index: index, event: event });
         });
       });
       return matches;
     }
 
-    function renderSearchResults(query) {
-      const matches = findMatches(query);
-      searchResults.replaceChildren();
+    function findMatches(query) {
+      const needle = query.trim().toLowerCase();
+      if (!needle) return [];
+      return collectAllMatches().filter(function (match) {
+        return match.event.company.toLowerCase().includes(needle);
+      });
+    }
 
-      const countLabel = document.createElement("p");
-      countLabel.className = "search-results-count";
-      countLabel.textContent = matches.length > 0
-        ? "'" + query.trim() + "' 탐방 " + matches.length + "건"
-        : "'" + query.trim() + "'(으)로 검색된 탐방이 없어요";
-      searchResults.appendChild(countLabel);
+    function navigateToVisit(dateKey) {
+      const [year, month] = dateKey.split("-").map(Number);
+      currentMonth = new Date(year, month - 1, 1);
+      selectedKey = dateKey;
+      searchInput.value = "";
+      setSearchMode(false);
+      setActiveTab("calendar");
+      renderCalendar();
+      renderEventList();
+    }
 
+    function appendCompanyGroups(container, matches, sortCompaniesAlpha) {
       const companyOrder = [];
       const matchesByCompany = {};
       matches.forEach(function (match) {
@@ -1076,6 +1127,10 @@
         }
         matchesByCompany[name].push(match);
       });
+
+      if (sortCompaniesAlpha) {
+        companyOrder.sort(function (a, b) { return a.localeCompare(b, "ko"); });
+      }
 
       companyOrder.forEach(function (companyName) {
         const group = document.createElement("div");
@@ -1115,13 +1170,7 @@
           navButton.appendChild(main);
 
           navButton.addEventListener("click", function () {
-            const [year, month] = match.dateKey.split("-").map(Number);
-            currentMonth = new Date(year, month - 1, 1);
-            selectedKey = match.dateKey;
-            searchInput.value = "";
-            setSearchMode(false);
-            renderCalendar();
-            renderEventList();
+            navigateToVisit(match.dateKey);
           });
           item.appendChild(navButton);
 
@@ -1133,8 +1182,22 @@
           group.appendChild(item);
         });
 
-        searchResults.appendChild(group);
+        container.appendChild(group);
       });
+    }
+
+    function renderSearchResults(query) {
+      const matches = findMatches(query);
+      searchResults.replaceChildren();
+
+      const countLabel = document.createElement("p");
+      countLabel.className = "search-results-count";
+      countLabel.textContent = matches.length > 0
+        ? "'" + query.trim() + "' 탐방 " + matches.length + "건"
+        : "'" + query.trim() + "'(으)로 검색된 탐방이 없어요";
+      searchResults.appendChild(countLabel);
+
+      appendCompanyGroups(searchResults, matches, false);
     }
 
     function setSearchMode(isSearching) {
@@ -1146,6 +1209,45 @@
     function refreshSearchIfActive() {
       if (searchInput.value.trim()) renderSearchResults(searchInput.value);
     }
+
+    // ---------- Company directory (no search needed) ----------
+
+    function renderDirectory() {
+      const matches = collectAllMatches();
+      directoryView.replaceChildren();
+
+      if (matches.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.innerHTML = '<span class="empty-icon">🏢</span><strong>등록된 기업 탐방이 없어요</strong><p>캘린더에서 탐방을 추가하면<br>여기 모아서 보여드려요.</p>';
+        directoryView.appendChild(empty);
+        return;
+      }
+
+      const companyCount = new Set(matches.map(function (match) { return match.event.company; })).size;
+      const countLabel = document.createElement("p");
+      countLabel.className = "search-results-count";
+      countLabel.textContent = "총 " + companyCount + "개 기업 · " + matches.length + "회 방문";
+      directoryView.appendChild(countLabel);
+
+      appendCompanyGroups(directoryView, matches, true);
+    }
+
+    function renderDirectoryIfActive() {
+      if (!directoryView.hidden) renderDirectory();
+    }
+
+    function setActiveTab(tab) {
+      const isDirectory = tab === "directory";
+      calendarView.hidden = isDirectory;
+      directoryView.hidden = !isDirectory;
+      calendarTabButton.classList.toggle("active", !isDirectory);
+      directoryTabButton.classList.toggle("active", isDirectory);
+      if (isDirectory) renderDirectory();
+    }
+
+    calendarTabButton.addEventListener("click", function () { setActiveTab("calendar"); });
+    directoryTabButton.addEventListener("click", function () { setActiveTab("directory"); });
 
     // ---------- Per-visit reference links ----------
 
@@ -1164,13 +1266,25 @@
       const links = targetEvent && Array.isArray(targetEvent.links) ? targetEvent.links : [];
 
       links.forEach(function (link) {
+        const pair = document.createElement("span");
+        pair.className = "link-chip-pair";
+
         const chip = document.createElement("a");
         chip.className = "link-chip";
         chip.href = link.url;
         chip.target = "_blank";
         chip.rel = "noopener noreferrer";
         chip.textContent = "🔗 " + (link.label && link.label.trim() ? link.label : link.url);
-        wrapper.appendChild(chip);
+        pair.appendChild(chip);
+
+        if (link.password && link.password.trim()) {
+          const passwordBadge = document.createElement("span");
+          passwordBadge.className = "link-password";
+          passwordBadge.textContent = "🔑 " + link.password.trim();
+          pair.appendChild(passwordBadge);
+        }
+
+        wrapper.appendChild(pair);
       });
 
       const addButton = document.createElement("button");
@@ -1217,12 +1331,23 @@
         const item = document.createElement("div");
         item.className = "link-list-item";
 
+        const main = document.createElement("div");
+        main.className = "link-list-item-main";
+
         const anchor = document.createElement("a");
         anchor.href = link.url;
         anchor.target = "_blank";
         anchor.rel = "noopener noreferrer";
         anchor.textContent = link.label && link.label.trim() ? link.label : link.url;
-        item.appendChild(anchor);
+        main.appendChild(anchor);
+
+        if (link.password && link.password.trim()) {
+          const passwordBadge = document.createElement("span");
+          passwordBadge.className = "link-password";
+          passwordBadge.textContent = "🔑 " + link.password.trim();
+          main.appendChild(passwordBadge);
+        }
+        item.appendChild(main);
 
         const removeButton = document.createElement("button");
         removeButton.className = "icon-button delete-button";
@@ -1233,6 +1358,7 @@
           renderLinkList();
           renderEventList();
           refreshSearchIfActive();
+          renderDirectoryIfActive();
           syncDateKey(currentLinkTarget.dateKey);
         });
         item.appendChild(removeButton);
@@ -1278,6 +1404,7 @@
     linkForm.addEventListener("submit", function (event) {
       event.preventDefault();
       const label = document.getElementById("linkLabelInput").value.trim();
+      const password = document.getElementById("linkPasswordInput").value.trim();
       let url = document.getElementById("linkUrlInput").value.trim();
       if (!url || !currentLinkTarget) return;
       if (!/^https?:\/\//i.test(url)) url = "https://" + url;
@@ -1285,11 +1412,12 @@
       const targetEvent = getLinkTargetEvent(currentLinkTarget);
       if (!targetEvent) return;
       if (!Array.isArray(targetEvent.links)) targetEvent.links = [];
-      targetEvent.links.push({ url: url, label: label });
+      targetEvent.links.push({ url: url, label: label, password: password });
       linkForm.reset();
       renderLinkList();
       renderEventList();
       refreshSearchIfActive();
+      renderDirectoryIfActive();
       showToast("링크가 추가됐어요");
       syncDateKey(currentLinkTarget.dateKey);
     });
