@@ -326,13 +326,17 @@
     .weekdays span:first-child { color: #f04452; }
     .weekdays span:last-child { color: var(--green-dark); }
 
-    .holiday-label {
+    .holiday-chip {
       display: block;
-      margin-top: 3px;
+      width: 100%;
+      margin-top: 5px;
+      padding: 6px;
       overflow: hidden;
-      color: #f04452;
-      font-size: 9px;
-      font-weight: 700;
+      border-radius: 7px;
+      color: white;
+      background: #f04452;
+      font-size: 10px;
+      font-weight: 800;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
@@ -348,6 +352,7 @@
     }
 
     .day:not(.empty):hover { background: #f7faf2; }
+    .day.holiday { background: #fdedee; }
     .day.selected { border-color: #a9cf75; background: #f4fae9; }
 
     .day-number {
@@ -1336,10 +1341,10 @@
         button.appendChild(dayNumber);
 
         if (holidayName) {
-          const holidayLabel = document.createElement("span");
-          holidayLabel.className = "holiday-label";
-          holidayLabel.textContent = holidayName;
-          button.appendChild(holidayLabel);
+          const holidayChip = document.createElement("span");
+          holidayChip.className = "holiday-chip";
+          holidayChip.textContent = "🇰🇷 " + holidayName;
+          button.appendChild(holidayChip);
         }
 
         if (dateEvents.length > 0) {
