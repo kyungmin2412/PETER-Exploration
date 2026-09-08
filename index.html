@@ -259,6 +259,21 @@
     .view-tab.active { color: white; background: var(--green); }
     .view-tab.active:hover { background: var(--green-dark); }
 
+    .participant-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 18px; }
+    .filter-chip {
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--sub-text);
+      background: white;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+      transition: 0.15s;
+    }
+    .filter-chip:hover { border-color: #a9cf75; }
+    .filter-chip.active { color: white; background: var(--green); border-color: var(--green); }
+
     .link-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
     .link-chip-pair { display: inline-flex; align-items: center; gap: 4px; }
     .link-chip {
@@ -293,6 +308,8 @@
     .event-links { margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--border); }
     .event-links-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 9px; }
     .event-links-title { color: var(--sub-text); font-size: 12px; font-weight: 700; }
+
+    .notes-list { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 4px; color: var(--text); font-size: 13px; line-height: 1.5; }
 
     .search-result-top {
       display: flex;
@@ -596,6 +613,7 @@
       .participant-dot { padding: 1px 2px; font-size: 7px; }
       .more-events { display: none; }
       .detail-card { padding: 20px; border-radius: 18px; }
+      .filter-chip { padding: 5px 9px; font-size: 11px; }
     }
   </style>
 </head>
@@ -619,6 +637,8 @@
         <button id="calendarTabButton" type="button" class="view-tab active">📅 캘린더</button>
         <button id="directoryTabButton" type="button" class="view-tab">🏢 기업 목록</button>
       </div>
+
+      <div id="participantFilterRow" class="participant-filter-row"></div>
 
       <div id="calendarView">
         <div class="calendar-header">
@@ -704,6 +724,46 @@
         <button class="submit-button" type="submit">링크 추가</button>
       </form>
       <div id="linkList" class="link-list"></div>
+    </div>
+  </dialog>
+
+  <dialog id="myNameDialog" aria-labelledby="myNameDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 id="myNameDialogTitle">내 이름 선택</h2>
+        <button id="closeMyNameDialog" class="close-button" aria-label="닫기">×</button>
+      </div>
+      <p class="setup-copy">
+        이 기기에서 사용할 내 이름을 선택해두면, 캘린더와 검색에서 내 탐방을 빠르게 찾아볼 수 있어요.<br>
+        로그인이나 수정 권한과는 관련 없고, 이 기기에만 저장돼요.
+      </p>
+      <div id="myNameList" class="participant-list"></div>
+      <button id="clearMyName" type="button" class="link-add-button" style="margin-top: 16px;">선택 해제</button>
+    </div>
+  </dialog>
+
+  <dialog id="notesDialog" aria-labelledby="notesDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 id="notesDialogTitle">탐방 기록</h2>
+        <button id="closeNotesDialog" class="close-button" aria-label="닫기">×</button>
+      </div>
+      <p class="setup-copy">이 탐방에서 확인한 핵심 내용을 짧게 남겨보세요.</p>
+      <form id="notesForm" class="event-form">
+        <div class="form-field">
+          <label for="notesLine1">핵심 내용 1</label>
+          <input id="notesLine1" type="text" maxlength="120" placeholder="예: 3분기 매출 전년比 12% 성장">
+        </div>
+        <div class="form-field">
+          <label for="notesLine2">핵심 내용 2</label>
+          <input id="notesLine2" type="text" maxlength="120" placeholder="예: 신규 라인 4분기 가동 예정">
+        </div>
+        <div class="form-field">
+          <label for="notesLine3">핵심 내용 3</label>
+          <input id="notesLine3" type="text" maxlength="120" placeholder="예: 밸류에이션 여전히 매력적">
+        </div>
+        <button class="submit-button" type="submit">기록 저장</button>
+      </form>
     </div>
   </dialog>
 
@@ -812,6 +872,7 @@
     const STORAGE_KEY = "peterExplorationEvents";
     const LEGACY_COMPANY_STORAGE_KEY = "peterExplorationCompanyLinks";
     const TOKEN_STORAGE_KEY = "peterExplorationKey";
+    const MY_NAME_STORAGE_KEY = "peterExplorationMyName";
     const GIST_ID = "dd6c6671134c12aff5b63a4bc2d536e2";
     const GIST_FILENAME = "events.json";
     const ICS_FILENAME = "events.ics";
@@ -827,8 +888,11 @@
     migrateCompanyLinks(events, loadCache(LEGACY_COMPANY_STORAGE_KEY));
     let editingIndex = null;
     let currentLinkTarget = null;
+    let currentNotesTarget = null;
     let toastTimer;
     let syncing = false;
+    let myName = localStorage.getItem(MY_NAME_STORAGE_KEY) || "";
+    let activeParticipantFilter = myName || "";
 
     const calendarGrid = document.getElementById("calendarGrid");
     const weekdaysRow = document.getElementById("weekdaysRow");
@@ -848,6 +912,11 @@
     const directoryTabButton = document.getElementById("directoryTabButton");
     const calendarView = document.getElementById("calendarView");
     const directoryView = document.getElementById("directoryView");
+    const participantFilterRow = document.getElementById("participantFilterRow");
+    const myNameDialog = document.getElementById("myNameDialog");
+    const myNameList = document.getElementById("myNameList");
+    const notesDialog = document.getElementById("notesDialog");
+    const notesForm = document.getElementById("notesForm");
 
     function makeDateKey(year, month, day) {
       return year + "-" + String(month + 1).padStart(2, "0") + "-" + String(day).padStart(2, "0");
@@ -859,6 +928,15 @@
       const weekdays = ["일", "월", "화", "수", "목", "금", "토"];
       const holidayName = HOLIDAYS[key];
       return month + "월 " + day + "일 " + weekdays[date.getDay()] + "요일" + (holidayName ? " · " + holidayName : "");
+    }
+
+    function getDayEvents(dateKey) {
+      const dateEvents = events[dateKey];
+      if (!Array.isArray(dateEvents)) return [];
+      dateEvents.sort(function (a, b) {
+        return (a.time || "").localeCompare(b.time || "");
+      });
+      return dateEvents;
     }
 
     function loadCache(key) {
@@ -962,7 +1040,9 @@
       ];
       const stamp = formatIcsUtcStamp(new Date());
       Object.keys(eventsData || {}).sort().forEach(function (dateKey) {
-        const dateEvents = Array.isArray(eventsData[dateKey]) ? eventsData[dateKey] : [];
+        const dateEvents = Array.isArray(eventsData[dateKey])
+          ? eventsData[dateKey].slice().sort(function (a, b) { return (a.time || "").localeCompare(b.time || ""); })
+          : [];
         dateEvents.forEach(function (event, index) {
           const startLocal = formatIcsLocalDateTime(dateKey, event.time);
           const joined = Array.isArray(event.joined) ? event.joined : [];
@@ -1090,9 +1170,12 @@
     function collectAllMatches() {
       const matches = [];
       Object.keys(events).sort().forEach(function (dateKey) {
-        const dateEvents = Array.isArray(events[dateKey]) ? events[dateKey] : [];
+        const dateEvents = getDayEvents(dateKey);
         dateEvents.forEach(function (event, index) {
-          if (event.company) matches.push({ dateKey: dateKey, index: index, event: event });
+          if (!event.company) return;
+          const joined = Array.isArray(event.joined) ? event.joined : [];
+          if (activeParticipantFilter && !joined.includes(activeParticipantFilter)) return;
+          matches.push({ dateKey: dateKey, index: index, event: event });
         });
       });
       return matches;
@@ -1220,7 +1303,9 @@
       if (matches.length === 0) {
         const empty = document.createElement("div");
         empty.className = "empty-state";
-        empty.innerHTML = '<span class="empty-icon">🏢</span><strong>등록된 기업 탐방이 없어요</strong><p>캘린더에서 탐방을 추가하면<br>여기 모아서 보여드려요.</p>';
+        empty.innerHTML = activeParticipantFilter
+          ? '<span class="empty-icon">🏢</span><strong>' + activeParticipantFilter + '님이 참여한 탐방이 없어요</strong><p>필터를 "전체"로 바꾸면<br>모든 탐방을 볼 수 있어요.</p>'
+          : '<span class="empty-icon">🏢</span><strong>등록된 기업 탐방이 없어요</strong><p>캘린더에서 탐방을 추가하면<br>여기 모아서 보여드려요.</p>';
         directoryView.appendChild(empty);
         return;
       }
@@ -1250,9 +1335,82 @@
     calendarTabButton.addEventListener("click", function () { setActiveTab("calendar"); });
     directoryTabButton.addEventListener("click", function () { setActiveTab("directory"); });
 
+    // ---------- Participant filter & "내 이름" preference ----------
+
+    function applyParticipantFilter(name) {
+      activeParticipantFilter = name;
+      renderParticipantFilterRow();
+      renderCalendar();
+      refreshSearchIfActive();
+      renderDirectoryIfActive();
+    }
+
+    function toggleParticipantFilter(name) {
+      applyParticipantFilter(activeParticipantFilter === name ? "" : name);
+    }
+
+    function renderParticipantFilterRow() {
+      participantFilterRow.replaceChildren();
+
+      const allChip = document.createElement("button");
+      allChip.type = "button";
+      allChip.className = "filter-chip" + (activeParticipantFilter === "" ? " active" : "");
+      allChip.textContent = "전체";
+      allChip.addEventListener("click", function () { applyParticipantFilter(""); });
+      participantFilterRow.appendChild(allChip);
+
+      participants.forEach(function (participant) {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "filter-chip" + (activeParticipantFilter === participant.name ? " active" : "");
+        chip.textContent = participant.name + (participant.name === myName ? " (나)" : "");
+        chip.addEventListener("click", function () { toggleParticipantFilter(participant.name); });
+        participantFilterRow.appendChild(chip);
+      });
+
+      const myNameButton = document.createElement("button");
+      myNameButton.type = "button";
+      myNameButton.className = "link-add-button";
+      myNameButton.textContent = myName ? "👤 " + myName + " 변경" : "👤 내 이름 선택";
+      myNameButton.addEventListener("click", function () {
+        renderMyNameList();
+        myNameDialog.showModal();
+      });
+      participantFilterRow.appendChild(myNameButton);
+    }
+
+    function renderMyNameList() {
+      myNameList.replaceChildren();
+      participants.forEach(function (participant) {
+        const button = document.createElement("button");
+        const isMine = participant.name === myName;
+        button.type = "button";
+        button.className = "participant" + (isMine ? " joined" : "");
+        button.style.setProperty("--person-color", participant.color);
+        button.textContent = participant.name;
+        button.addEventListener("click", function () {
+          myName = participant.name;
+          localStorage.setItem(MY_NAME_STORAGE_KEY, myName);
+          myNameDialog.close();
+          applyParticipantFilter(myName);
+        });
+        myNameList.appendChild(button);
+      });
+    }
+
+    document.getElementById("closeMyNameDialog").addEventListener("click", function () { myNameDialog.close(); });
+    myNameDialog.addEventListener("click", function (event) { if (event.target === myNameDialog) myNameDialog.close(); });
+
+    document.getElementById("clearMyName").addEventListener("click", function () {
+      myName = "";
+      localStorage.removeItem(MY_NAME_STORAGE_KEY);
+      myNameDialog.close();
+      applyParticipantFilter("");
+    });
+
     // ---------- Per-visit reference links ----------
 
-    function getLinkTargetEvent(target) {
+    function getEventAt(target) {
       if (!target) return null;
       const dateEvents = events[target.dateKey];
       if (!Array.isArray(dateEvents) || !dateEvents[target.index]) return null;
@@ -1263,7 +1421,7 @@
       const wrapper = document.createElement("div");
       wrapper.className = "link-chips";
 
-      const targetEvent = getLinkTargetEvent({ dateKey: dateKey, index: index });
+      const targetEvent = getEventAt({ dateKey: dateKey, index: index });
       const links = targetEvent && Array.isArray(targetEvent.links) ? targetEvent.links : [];
 
       links.forEach(function (link) {
@@ -1303,7 +1461,7 @@
 
     function openLinkDialog(dateKey, index) {
       currentLinkTarget = { dateKey: dateKey, index: index };
-      const targetEvent = getLinkTargetEvent(currentLinkTarget);
+      const targetEvent = getEventAt(currentLinkTarget);
       document.getElementById("linkDialogTitle").textContent = targetEvent
         ? targetEvent.company + " · " + formatSelectedDate(dateKey)
         : "탐방 자료";
@@ -1317,7 +1475,7 @@
 
     function renderLinkList() {
       linkList.replaceChildren();
-      const targetEvent = getLinkTargetEvent(currentLinkTarget);
+      const targetEvent = getEventAt(currentLinkTarget);
       const links = targetEvent && Array.isArray(targetEvent.links) ? targetEvent.links : [];
 
       if (links.length === 0) {
@@ -1410,7 +1568,7 @@
       if (!url || !currentLinkTarget) return;
       if (!/^https?:\/\//i.test(url)) url = "https://" + url;
 
-      const targetEvent = getLinkTargetEvent(currentLinkTarget);
+      const targetEvent = getEventAt(currentLinkTarget);
       if (!targetEvent) return;
       if (!Array.isArray(targetEvent.links)) targetEvent.links = [];
       targetEvent.links.push({ url: url, label: label, password: password });
@@ -1421,6 +1579,41 @@
       renderDirectoryIfActive();
       showToast("링크가 추가됐어요");
       syncDateKey(currentLinkTarget.dateKey);
+    });
+
+    // ---------- Per-visit short notes ----------
+
+    function openNotesDialog(dateKey, index) {
+      currentNotesTarget = { dateKey: dateKey, index: index };
+      const targetEvent = getEventAt(currentNotesTarget);
+      const lines = targetEvent && Array.isArray(targetEvent.notes) ? targetEvent.notes : [];
+      document.getElementById("notesDialogTitle").textContent = targetEvent
+        ? targetEvent.company + " · " + formatSelectedDate(dateKey)
+        : "탐방 기록";
+      document.getElementById("notesLine1").value = lines[0] || "";
+      document.getElementById("notesLine2").value = lines[1] || "";
+      document.getElementById("notesLine3").value = lines[2] || "";
+      notesDialog.showModal();
+    }
+
+    document.getElementById("closeNotesDialog").addEventListener("click", function () { notesDialog.close(); });
+    notesDialog.addEventListener("click", function (event) { if (event.target === notesDialog) notesDialog.close(); });
+    notesDialog.addEventListener("close", function () { currentNotesTarget = null; });
+
+    notesForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      if (!currentNotesTarget) return;
+      const targetEvent = getEventAt(currentNotesTarget);
+      if (!targetEvent) return;
+      targetEvent.notes = [
+        document.getElementById("notesLine1").value.trim(),
+        document.getElementById("notesLine2").value.trim(),
+        document.getElementById("notesLine3").value.trim()
+      ];
+      notesDialog.close();
+      renderEventList();
+      showToast("기록이 저장됐어요");
+      syncDateKey(currentNotesTarget.dateKey);
     });
 
     searchInput.addEventListener("input", function () {
@@ -1451,12 +1644,17 @@
 
       for (let day = 1; day <= lastDay; day += 1) {
         const key = makeDateKey(year, month, day);
-        const dateEvents = Array.isArray(events[key]) ? events[key] : [];
+        const dayEvents = getDayEvents(key);
+        const visibleEvents = activeParticipantFilter
+          ? dayEvents.filter(function (dateEvent) {
+              return Array.isArray(dateEvent.joined) && dateEvent.joined.includes(activeParticipantFilter);
+            })
+          : dayEvents;
         const weekday = new Date(year, month, day).getDay();
         const holidayName = HOLIDAYS[key];
         const button = document.createElement("button");
         button.className = "day";
-        button.setAttribute("aria-label", (month + 1) + "월 " + day + "일" + (holidayName ? ", " + holidayName : "") + ", 탐방 " + dateEvents.length + "개");
+        button.setAttribute("aria-label", (month + 1) + "월 " + day + "일" + (holidayName ? ", " + holidayName : "") + ", 탐방 " + visibleEvents.length + "개");
 
         if (weekday === 0) button.classList.add("sunday");
         if (weekday === 6) button.classList.add("saturday");
@@ -1476,20 +1674,18 @@
           button.appendChild(holidayChip);
         }
 
-        if (dateEvents.length > 0) {
+        visibleEvents.forEach(function (dateEvent) {
           const chip = document.createElement("span");
           chip.className = "event-chip";
-          chip.textContent = dateEvents[0].company;
+          chip.textContent = dateEvent.company;
           button.appendChild(chip);
 
-          const joinedNames = Array.from(new Set(dateEvents.flatMap(function (dateEvent) {
-            return Array.isArray(dateEvent.joined) ? dateEvent.joined : [];
-          })));
-          if (joinedNames.length > 0) {
+          const joined = Array.isArray(dateEvent.joined) ? dateEvent.joined : [];
+          if (joined.length > 0) {
             const joinedList = document.createElement("span");
             joinedList.className = "calendar-participants";
-            joinedList.setAttribute("aria-label", "참여자: " + joinedNames.join(", "));
-            joinedNames.forEach(function (name) {
+            joinedList.setAttribute("aria-label", "참여자: " + joined.join(", "));
+            joined.forEach(function (name) {
               const participant = participants.find(function (person) { return person.name === name; });
               if (!participant) return;
               const dot = document.createElement("span");
@@ -1501,13 +1697,13 @@
             });
             button.appendChild(joinedList);
           }
+        });
 
-          if (dateEvents.length > 1) {
-            const more = document.createElement("span");
-            more.className = "more-events";
-            more.textContent = "+" + (dateEvents.length - 1) + "개 더보기";
-            button.appendChild(more);
-          }
+        if (activeParticipantFilter && visibleEvents.length < dayEvents.length) {
+          const hiddenNote = document.createElement("span");
+          hiddenNote.className = "more-events";
+          hiddenNote.textContent = "외 " + (dayEvents.length - visibleEvents.length) + "건";
+          button.appendChild(hiddenNote);
         }
 
         button.addEventListener("click", function () {
@@ -1520,7 +1716,7 @@
     }
 
     function renderEventList() {
-      const dateEvents = Array.isArray(events[selectedKey]) ? events[selectedKey] : [];
+      const dateEvents = getDayEvents(selectedKey);
       selectedDate.textContent = formatSelectedDate(selectedKey);
       eventList.replaceChildren();
 
@@ -1534,6 +1730,7 @@
 
       dateEvents.forEach(function (event, eventIndex) {
         if (!Array.isArray(event.joined)) event.joined = [];
+        if (!Array.isArray(event.notes)) event.notes = [];
         const item = document.createElement("article");
         item.className = "event-item";
 
@@ -1597,6 +1794,38 @@
           participantList.appendChild(button);
         });
         item.appendChild(participantList);
+
+        const notesSection = document.createElement("div");
+        notesSection.className = "event-links";
+        const notesHeader = document.createElement("div");
+        notesHeader.className = "event-links-header";
+        const notesTitle = document.createElement("span");
+        notesTitle.className = "event-links-title";
+        notesTitle.textContent = "📝 핵심 기록";
+        notesHeader.appendChild(notesTitle);
+
+        const notesLines = event.notes.filter(function (line) { return line && line.trim(); });
+        const notesButton = document.createElement("button");
+        notesButton.type = "button";
+        notesButton.className = "link-add-button";
+        notesButton.textContent = notesLines.length > 0 ? "기록 수정" : "+ 기록 남기기";
+        notesButton.addEventListener("click", function () {
+          openNotesDialog(selectedKey, eventIndex);
+        });
+        notesHeader.appendChild(notesButton);
+        notesSection.appendChild(notesHeader);
+
+        if (notesLines.length > 0) {
+          const notesList = document.createElement("ul");
+          notesList.className = "notes-list";
+          notesLines.forEach(function (line) {
+            const li = document.createElement("li");
+            li.textContent = line;
+            notesList.appendChild(li);
+          });
+          notesSection.appendChild(notesList);
+        }
+        item.appendChild(notesSection);
 
         const linksSection = document.createElement("div");
         linksSection.className = "event-links";
@@ -1710,7 +1939,7 @@
         existing.place = place;
         showToast(company + " 탐방이 수정됐어요");
       } else {
-        events[selectedKey].push({ company: company, time: time, place: place, joined: [], links: [] });
+        events[selectedKey].push({ company: company, time: time, place: place, joined: [], links: [], notes: [] });
         showToast(company + " 탐방이 추가됐어요");
       }
 
@@ -1722,6 +1951,7 @@
       syncDateKey(selectedKey);
     });
 
+    renderParticipantFilterRow();
     renderCalendar();
     renderEventList();
     setSyncStatus("idle");
