@@ -19,6 +19,9 @@
       --background: #f6faef;
       --border: #e1ebd5;
       --white: #ffffff;
+      --earnings-dark: #3a6ea5;
+      --earnings-light: #eaf2fb;
+      --earnings-border: #d3e3f4;
       font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
         "Noto Sans KR", "Segoe UI", sans-serif;
     }
@@ -260,6 +263,7 @@
     .view-tab.active:hover { background: var(--green-dark); }
 
     .participant-filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-bottom: 18px; }
+    .participant-filter-row[hidden] { display: none; }
     .filter-chip {
       padding: 7px 12px;
       border: 1px solid var(--border);
@@ -310,6 +314,64 @@
     .event-links-title { color: var(--sub-text); font-size: 12px; font-weight: 700; }
 
     .notes-list { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 4px; color: var(--text); font-size: 13px; line-height: 1.5; }
+
+    .earnings-chip {
+      display: block;
+      width: 100%;
+      margin-top: 3px;
+      padding: 1px 5px;
+      overflow: hidden;
+      border-radius: 5px;
+      color: var(--earnings-dark);
+      background: var(--earnings-light);
+      font-size: 9px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .earnings-more { display: block; margin: 3px 0 0 4px; color: var(--muted); font-size: 8px; font-weight: 700; }
+
+    .earnings-form { display: grid; gap: 14px; padding: 18px; border: 1px solid var(--border); border-radius: 16px; background: #fcfef9; }
+    .earnings-form-fields { display: grid; grid-template-columns: 170px 170px 1fr; gap: 12px; }
+    .earnings-form .submit-button { height: 46px; margin: 0; }
+
+    .earnings-list { display: grid; gap: 16px; margin-top: 22px; }
+    .earnings-date-group { display: grid; gap: 8px; }
+    .earnings-date-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: 12px;
+      color: var(--earnings-dark);
+      background: var(--earnings-light);
+      font-size: 15px;
+      font-weight: 800;
+    }
+    .earnings-date-badge { font-size: 12px; font-weight: 700; white-space: nowrap; }
+
+    .earnings-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1px solid var(--earnings-border);
+      border-radius: 13px;
+      background: #f9fcff;
+      transition: 0.15s;
+    }
+    .earnings-row:hover { border-color: #9bbfe4; }
+    .earnings-row-main { display: flex; flex-wrap: wrap; align-items: baseline; gap: 9px; min-width: 0; text-align: left; }
+    .earnings-company { font-size: 15px; font-weight: 700; letter-spacing: -0.3px; }
+    .earnings-time { color: var(--earnings-dark); font-size: 12px; font-weight: 700; }
+    .earnings-no-time { color: var(--muted); font-size: 12px; }
+
+    .selected-earnings { display: grid; gap: 8px; margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--border); }
+    .selected-earnings[hidden] { display: none; }
+    .selected-earnings-title { color: var(--sub-text); font-size: 12px; font-weight: 700; }
 
     .search-result-top {
       display: flex;
@@ -614,6 +676,9 @@
       .more-events { display: none; }
       .detail-card { padding: 20px; border-radius: 18px; }
       .filter-chip { padding: 5px 9px; font-size: 11px; }
+      .earnings-chip { padding: 1px 3px; font-size: 7px; }
+      .earnings-more { margin-left: 2px; font-size: 7px; }
+      .earnings-form-fields { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -636,6 +701,7 @@
       <div class="view-tabs">
         <button id="calendarTabButton" type="button" class="view-tab active">📅 캘린더</button>
         <button id="directoryTabButton" type="button" class="view-tab">🏢 기업 목록</button>
+        <button id="earningsTabButton" type="button" class="view-tab">📊 실적 발표</button>
       </div>
 
       <div id="participantFilterRow" class="participant-filter-row"></div>
@@ -663,6 +729,27 @@
       </div>
 
       <div id="directoryView" class="search-results" hidden></div>
+
+      <div id="earningsView" hidden>
+        <form id="earningsForm" class="earnings-form">
+          <div class="earnings-form-fields">
+            <div class="form-field">
+              <label for="earningsDateInput">날짜</label>
+              <input id="earningsDateInput" type="date" required>
+            </div>
+            <div class="form-field">
+              <label for="earningsTimeInput">시간 (선택)</label>
+              <input id="earningsTimeInput" type="text" maxlength="20" placeholder="예: 16:00, 장 마감 후" autocomplete="off">
+            </div>
+            <div class="form-field">
+              <label for="earningsCompanyInput">기업명</label>
+              <input id="earningsCompanyInput" type="text" maxlength="50" placeholder="기업명을 입력하세요" autocomplete="off" required>
+            </div>
+          </div>
+          <button class="submit-button" type="submit">실적 발표 추가</button>
+        </form>
+        <div id="earningsList" class="earnings-list"></div>
+      </div>
     </section>
 
     <aside class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
@@ -674,6 +761,7 @@
         <button id="openEventForm" class="add-button">+ 탐방 추가</button>
       </div>
       <div id="eventList" class="event-list"></div>
+      <div id="selectedEarnings" class="selected-earnings" hidden></div>
     </aside>
   </main>
 
@@ -870,6 +958,7 @@
     };
 
     const STORAGE_KEY = "peterExplorationEvents";
+    const EARNINGS_STORAGE_KEY = "peterExplorationEarnings";
     const LEGACY_COMPANY_STORAGE_KEY = "peterExplorationCompanyLinks";
     const TOKEN_STORAGE_KEY = "peterExplorationKey";
     const MY_NAME_STORAGE_KEY = "peterExplorationMyName";
@@ -878,6 +967,7 @@
     const ICS_FILENAME = "events.ics";
     const GCAL_ICS_URL = "https://gist.githubusercontent.com/kyungmin2412/" + "dd6c6671134c12aff5b63a4bc2d536e2" + "/raw/" + ICS_FILENAME;
     const POLL_INTERVAL_MS = 20000;
+    const CALENDAR_EARNINGS_LIMIT = 3;
 
     let gistToken = localStorage.getItem(TOKEN_STORAGE_KEY) || "";
 
@@ -885,6 +975,7 @@
     let currentMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     let selectedKey = makeDateKey(today.getFullYear(), today.getMonth(), today.getDate());
     let events = loadCache(STORAGE_KEY);
+    let earnings = loadCache(EARNINGS_STORAGE_KEY);
     migrateCompanyLinks(events, loadCache(LEGACY_COMPANY_STORAGE_KEY));
     let editingIndex = null;
     let currentLinkTarget = null;
@@ -913,6 +1004,14 @@
     const calendarView = document.getElementById("calendarView");
     const directoryView = document.getElementById("directoryView");
     const participantFilterRow = document.getElementById("participantFilterRow");
+    const earningsTabButton = document.getElementById("earningsTabButton");
+    const earningsView = document.getElementById("earningsView");
+    const earningsForm = document.getElementById("earningsForm");
+    const earningsList = document.getElementById("earningsList");
+    const earningsDateInput = document.getElementById("earningsDateInput");
+    const earningsTimeInput = document.getElementById("earningsTimeInput");
+    const earningsCompanyInput = document.getElementById("earningsCompanyInput");
+    const selectedEarnings = document.getElementById("selectedEarnings");
     const myNameDialog = document.getElementById("myNameDialog");
     const myNameList = document.getElementById("myNameList");
     const notesDialog = document.getElementById("notesDialog");
@@ -939,6 +1038,18 @@
       return dateEvents;
     }
 
+    function getDayEarnings(dateKey) {
+      const dateEarnings = earnings[dateKey];
+      if (!Array.isArray(dateEarnings)) return [];
+      dateEarnings.sort(function (a, b) {
+        const timeA = (a.time || "").trim();
+        const timeB = (b.time || "").trim();
+        if (!timeA !== !timeB) return timeA ? -1 : 1;
+        return timeA.localeCompare(timeB) || (a.company || "").localeCompare(b.company || "", "ko");
+      });
+      return dateEarnings;
+    }
+
     function loadCache(key) {
       try {
         const saved = JSON.parse(localStorage.getItem(key) || "{}");
@@ -951,6 +1062,7 @@
     function cacheLocal() {
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
+        localStorage.setItem(EARNINGS_STORAGE_KEY, JSON.stringify(earnings));
       } catch (error) { /* ignore quota errors */ }
     }
 
@@ -1090,13 +1202,35 @@
     }
 
     const pendingDateKeys = new Set();
+    const pendingEarningsKeys = new Set();
 
     function hasPending() {
-      return pendingDateKeys.size > 0;
+      return pendingDateKeys.size > 0 || pendingEarningsKeys.size > 0;
     }
 
-    function applyPending(remoteEvents) {
-      pendingDateKeys.forEach(function (key) { remoteEvents[key] = events[key]; });
+    function copyDateKey(target, source, key) {
+      const localList = source[key];
+      if (Array.isArray(localList) && localList.length > 0) target[key] = localList;
+      else delete target[key];
+    }
+
+    function readRemoteMap(remote, field) {
+      const value = remote && remote[field];
+      return typeof value === "object" && value !== null ? value : {};
+    }
+
+    function applyPending(remoteEvents, remoteEarnings) {
+      pendingDateKeys.forEach(function (key) { copyDateKey(remoteEvents, events, key); });
+      pendingEarningsKeys.forEach(function (key) { copyDateKey(remoteEarnings, earnings, key); });
+    }
+
+    function renderAfterSync() {
+      renderCalendar();
+      renderEventList();
+      refreshSearchIfActive();
+      renderDirectoryIfActive();
+      renderEarningsIfActive();
+      renderLinkDialogIfOpen();
     }
 
     async function fetchRemoteEvents() {
@@ -1104,16 +1238,14 @@
       setSyncStatus("syncing");
       try {
         const remote = await remoteGet();
-        const remoteEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        const remoteEvents = readRemoteMap(remote, "events");
+        const remoteEarnings = readRemoteMap(remote, "earnings");
         migrateCompanyLinks(remoteEvents, remote && remote.companyLinks);
-        applyPending(remoteEvents);
+        applyPending(remoteEvents, remoteEarnings);
         events = remoteEvents;
+        earnings = remoteEarnings;
         cacheLocal();
-        renderCalendar();
-        renderEventList();
-        refreshSearchIfActive();
-        renderDirectoryIfActive();
-        renderLinkDialogIfOpen();
+        renderAfterSync();
         setSyncStatus(hasPending() ? "offline" : "online");
       } catch (error) {
         setSyncStatus("offline");
@@ -1123,23 +1255,28 @@
 
     function retryPending() {
       const nextDateKey = pendingDateKeys.values().next().value;
-      if (nextDateKey !== undefined) syncDateKey(nextDateKey, false);
+      if (nextDateKey !== undefined) {
+        syncDateKey(nextDateKey, false);
+        return;
+      }
+      const nextEarningsKey = pendingEarningsKeys.values().next().value;
+      if (nextEarningsKey !== undefined) syncEarningsKey(nextEarningsKey, false);
     }
 
-    async function syncDateKey(dateKey, interactive) {
-      pendingDateKeys.add(dateKey);
+    async function pushDateKey(dateKey, pendingSet, interactive) {
+      pendingSet.add(dateKey);
       syncing = true;
       setSyncStatus("syncing");
-      const localDateEvents = events[dateKey];
       try {
         const remote = await remoteGet();
-        const mergedEvents = remote && typeof remote.events === "object" && remote.events !== null ? remote.events : {};
+        const mergedEvents = readRemoteMap(remote, "events");
+        const mergedEarnings = readRemoteMap(remote, "earnings");
         migrateCompanyLinks(mergedEvents, remote && remote.companyLinks);
-        pendingDateKeys.forEach(function (k) { if (k !== dateKey) mergedEvents[k] = events[k]; });
-        mergedEvents[dateKey] = localDateEvents;
-        await remotePut({ events: mergedEvents }, interactive);
+        applyPending(mergedEvents, mergedEarnings);
+        await remotePut({ events: mergedEvents, earnings: mergedEarnings }, interactive);
         events = mergedEvents;
-        pendingDateKeys.delete(dateKey);
+        earnings = mergedEarnings;
+        pendingSet.delete(dateKey);
         cacheLocal();
         setSyncStatus(hasPending() ? "offline" : "online");
       } catch (error) {
@@ -1147,12 +1284,16 @@
         cacheLocal();
       } finally {
         syncing = false;
-        renderCalendar();
-        renderEventList();
-        refreshSearchIfActive();
-        renderDirectoryIfActive();
-        renderLinkDialogIfOpen();
+        renderAfterSync();
       }
+    }
+
+    function syncDateKey(dateKey, interactive) {
+      return pushDateKey(dateKey, pendingDateKeys, interactive);
+    }
+
+    function syncEarningsKey(dateKey, interactive) {
+      return pushDateKey(dateKey, pendingEarningsKeys, interactive);
     }
 
     function startSync() {
@@ -1189,7 +1330,7 @@
       });
     }
 
-    function navigateToVisit(dateKey) {
+    function navigateToDate(dateKey) {
       const [year, month] = dateKey.split("-").map(Number);
       currentMonth = new Date(year, month - 1, 1);
       selectedKey = dateKey;
@@ -1254,7 +1395,7 @@
           navButton.appendChild(main);
 
           navButton.addEventListener("click", function () {
-            navigateToVisit(match.dateKey);
+            navigateToDate(match.dateKey);
           });
           item.appendChild(navButton);
 
@@ -1324,16 +1465,23 @@
     }
 
     function setActiveTab(tab) {
-      const isDirectory = tab === "directory";
-      calendarView.hidden = isDirectory;
-      directoryView.hidden = !isDirectory;
-      calendarTabButton.classList.toggle("active", !isDirectory);
-      directoryTabButton.classList.toggle("active", isDirectory);
-      if (isDirectory) renderDirectory();
+      calendarView.hidden = tab !== "calendar";
+      directoryView.hidden = tab !== "directory";
+      earningsView.hidden = tab !== "earnings";
+      calendarTabButton.classList.toggle("active", tab === "calendar");
+      directoryTabButton.classList.toggle("active", tab === "directory");
+      earningsTabButton.classList.toggle("active", tab === "earnings");
+      participantFilterRow.hidden = tab === "earnings";
+      if (tab === "directory") renderDirectory();
+      if (tab === "earnings") {
+        if (!earningsDateInput.value) earningsDateInput.value = selectedKey;
+        renderEarningsList();
+      }
     }
 
     calendarTabButton.addEventListener("click", function () { setActiveTab("calendar"); });
     directoryTabButton.addEventListener("click", function () { setActiveTab("directory"); });
+    earningsTabButton.addEventListener("click", function () { setActiveTab("earnings"); });
 
     // ---------- Participant filter & "내 이름" preference ----------
 
@@ -1406,6 +1554,146 @@
       localStorage.removeItem(MY_NAME_STORAGE_KEY);
       myNameDialog.close();
       applyParticipantFilter("");
+    });
+
+    // ---------- Earnings announcements ----------
+
+    function earningsDateKeys() {
+      return Object.keys(earnings)
+        .filter(function (dateKey) { return Array.isArray(earnings[dateKey]) && earnings[dateKey].length > 0; })
+        .sort();
+    }
+
+    function deleteEarning(dateKey, index) {
+      const dateEarnings = earnings[dateKey];
+      if (!Array.isArray(dateEarnings) || !dateEarnings[index]) return;
+      const company = dateEarnings[index].company;
+      if (!window.confirm(company + " 실적 발표 일정을 삭제할까요?")) return;
+      dateEarnings.splice(index, 1);
+      if (dateEarnings.length === 0) delete earnings[dateKey];
+      renderCalendar();
+      renderEventList();
+      renderEarningsIfActive();
+      showToast(company + " 실적 발표가 삭제됐어요");
+      syncEarningsKey(dateKey);
+    }
+
+    function buildEarningsRow(dateKey, index, onSelect) {
+      const earning = getDayEarnings(dateKey)[index];
+      const row = document.createElement("div");
+      row.className = "earnings-row";
+
+      const main = document.createElement(onSelect ? "button" : "div");
+      main.className = "earnings-row-main";
+      if (onSelect) {
+        main.type = "button";
+        main.addEventListener("click", onSelect);
+      }
+
+      const company = document.createElement("span");
+      company.className = "earnings-company";
+      company.textContent = earning.company;
+      main.appendChild(company);
+
+      const time = document.createElement("span");
+      if (earning.time && earning.time.trim()) {
+        time.className = "earnings-time";
+        time.textContent = "◷ " + earning.time.trim();
+      } else {
+        time.className = "earnings-no-time";
+        time.textContent = "시간 미정";
+      }
+      main.appendChild(time);
+      row.appendChild(main);
+
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.className = "icon-button delete-button";
+      removeButton.setAttribute("aria-label", "실적 발표 삭제");
+      removeButton.textContent = "🗑";
+      removeButton.addEventListener("click", function () { deleteEarning(dateKey, index); });
+      row.appendChild(removeButton);
+
+      return row;
+    }
+
+    function renderEarningsList() {
+      earningsList.replaceChildren();
+      const dateKeys = earningsDateKeys();
+
+      if (dateKeys.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.innerHTML = '<span class="empty-icon">📊</span><strong>등록된 실적 발표 일정이 없어요</strong><p>위에서 날짜와 기업명을 입력하면<br>캘린더에 작게 표시돼요.</p>';
+        earningsList.appendChild(empty);
+        return;
+      }
+
+      const total = dateKeys.reduce(function (sum, dateKey) { return sum + earnings[dateKey].length; }, 0);
+      const countLabel = document.createElement("p");
+      countLabel.className = "search-results-count";
+      countLabel.textContent = dateKeys.length + "일 · 실적 발표 " + total + "건";
+      earningsList.appendChild(countLabel);
+
+      dateKeys.forEach(function (dateKey) {
+        const group = document.createElement("div");
+        group.className = "earnings-date-group";
+
+        const header = document.createElement("div");
+        header.className = "earnings-date-header";
+        const dateName = document.createElement("span");
+        dateName.textContent = dateKey.split("-")[0] + "년 " + formatSelectedDate(dateKey);
+        const badge = document.createElement("span");
+        badge.className = "earnings-date-badge";
+        badge.textContent = earnings[dateKey].length + "건";
+        header.append(dateName, badge);
+        group.appendChild(header);
+
+        getDayEarnings(dateKey).forEach(function (earning, index) {
+          group.appendChild(buildEarningsRow(dateKey, index, function () { navigateToDate(dateKey); }));
+        });
+
+        earningsList.appendChild(group);
+      });
+    }
+
+    function renderEarningsIfActive() {
+      if (!earningsView.hidden) renderEarningsList();
+    }
+
+    function renderSelectedEarnings() {
+      const dateEarnings = getDayEarnings(selectedKey);
+      selectedEarnings.replaceChildren();
+      selectedEarnings.hidden = dateEarnings.length === 0;
+      if (dateEarnings.length === 0) return;
+
+      const title = document.createElement("p");
+      title.className = "selected-earnings-title";
+      title.textContent = "📊 이 날의 실적 발표 " + dateEarnings.length + "건";
+      selectedEarnings.appendChild(title);
+
+      dateEarnings.forEach(function (earning, index) {
+        selectedEarnings.appendChild(buildEarningsRow(selectedKey, index, null));
+      });
+    }
+
+    earningsForm.addEventListener("submit", function (event) {
+      event.preventDefault();
+      const dateKey = earningsDateInput.value;
+      const company = earningsCompanyInput.value.trim();
+      const time = earningsTimeInput.value.trim();
+      if (!dateKey || !company) return;
+
+      if (!Array.isArray(earnings[dateKey])) earnings[dateKey] = [];
+      earnings[dateKey].push({ company: company, time: time });
+      earningsCompanyInput.value = "";
+      earningsCompanyInput.focus();
+
+      renderCalendar();
+      renderEventList();
+      renderEarningsList();
+      showToast(company + " 실적 발표가 추가됐어요");
+      syncEarningsKey(dateKey);
     });
 
     // ---------- Per-visit reference links ----------
@@ -1706,6 +1994,24 @@
           button.appendChild(hiddenNote);
         }
 
+        const dayEarnings = getDayEarnings(key);
+        dayEarnings.slice(0, CALENDAR_EARNINGS_LIMIT).forEach(function (earning) {
+          const chip = document.createElement("span");
+          chip.className = "earnings-chip";
+          chip.textContent = earning.company;
+          chip.title = earning.time && earning.time.trim()
+            ? earning.company + " 실적 발표 · " + earning.time.trim()
+            : earning.company + " 실적 발표";
+          button.appendChild(chip);
+        });
+
+        if (dayEarnings.length > CALENDAR_EARNINGS_LIMIT) {
+          const earningsMore = document.createElement("span");
+          earningsMore.className = "earnings-more";
+          earningsMore.textContent = "+" + (dayEarnings.length - CALENDAR_EARNINGS_LIMIT) + "개";
+          button.appendChild(earningsMore);
+        }
+
         button.addEventListener("click", function () {
           selectedKey = key;
           renderCalendar();
@@ -1719,6 +2025,7 @@
       const dateEvents = getDayEvents(selectedKey);
       selectedDate.textContent = formatSelectedDate(selectedKey);
       eventList.replaceChildren();
+      renderSelectedEarnings();
 
       if (dateEvents.length === 0) {
         const emptyState = document.createElement("div");
