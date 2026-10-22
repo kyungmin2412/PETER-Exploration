@@ -33,4 +33,27 @@ assert.equal(merged.other,base.other);
 assert.equal(base.sample.price,undefined);
 assert.equal(merged.sample.price,'10,000원');
 assert.deepEqual(m.parseFile({content:JSON.stringify({version:1,items:merged})}),merged);
+const snapshot = {window:{}};
+vm.runInNewContext(fs.readFileSync(__dirname + '/ipo-data.js','utf8'),snapshot);
+const published = m.parseFile({content:JSON.stringify(snapshot.window.PeterIpoPublished)});
+assert.equal(Object.keys(published).length,35);
+assert.equal(Object.values(published).filter(r=>r.subscriptionStart.startsWith('2026-10')).length,14);
+assert.equal(Object.values(published).filter(r=>r.subscriptionStart.startsWith('2026-11')).length,18);
+for (const record of Object.values(published)) {
+  assert.equal(m.validate(record),'',record.company);
+  assert.ok(record.sourceUrl.startsWith('https://www.38.co.kr/html/fund/'));
+  assert.equal(record.checkedAt,'2026-10-22');
+  assert.ok(record.demandEnd < record.subscriptionStart,record.company);
+  assert.ok(record.subscriptionEnd < record.refundDate,record.company);
+  if(record.listingDate)assert.ok(record.refundDate < record.listingDate,record.company);
+}
+const alrobot=published['ipo-38-2331'];
+assert.equal(m.occurrences(alrobot,'2026-11-06','subscription').length,1);
+assert.equal(m.occurrences(alrobot,'2026-11-07','subscription').length,0);
+assert.equal(m.occurrences(alrobot,'2026-11-08','subscription').length,0);
+assert.equal(m.occurrences(alrobot,'2026-11-09','subscription').length,1);
+assert.equal(m.occurrences(published['ipo-38-2320'],'2026-10-05','subscription',{'2026-10-05':'대체공휴일'}).length,0);
+assert.equal(m.occurrences(published['ipo-38-2320'],'2026-10-06','subscription').length,1);
+assert.equal(published['ipo-38-2331'].listingDate,'','unannounced listings must remain empty');
 console.log('PASS: script syntax, unique IDs, date boundaries, filters, validation, schema and independent-record merges');
+console.log('PASS: 35 sourced IPO records, October/November coverage, milestone order, weekend and holiday exclusions');

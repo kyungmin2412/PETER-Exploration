@@ -4,6 +4,10 @@
   const FILE = "ipos.json";
   const CACHE = "peterExplorationIpos.v1";
   const PENDING = "peterExplorationIpos.pending.v1";
+  // Keep published schedules separate from user additions, edits and deletion
+  // tombstones. Refreshing cannot erase the baseline or replace manual edits.
+  const publication = window.PeterIpoPublished;
+  const published = publication ? model.parseFile({ content: JSON.stringify(publication) }) : {};
   const byId = id => document.getElementById(id);
   const form = byId("ipoForm");
   const dialog = byId("ipoDialog");
@@ -56,11 +60,11 @@
   }
   function matchingRecords() {
     const query = byId("ipoSearchInput").value;
-    return Object.values(records).filter(item => model.matches(item, query))
+    return Object.values(model.merge(published, records)).filter(item => model.matches(item, query))
       .sort((a, b) => a.company.localeCompare(b.company, "ko"));
   }
   function dayEntries(key) {
-    return matchingRecords().flatMap(record => model.occurrences(record, key, stageFilter).map(stage => ({ record, stage })));
+    return matchingRecords().flatMap(record => model.occurrences(record, key, stageFilter, HOLIDAYS).map(stage => ({ record, stage })));
   }
   function stageLabel(stage, record, key) {
     return stage.key === "subscription" && key === record.subscriptionEnd ? "청약 마감" : stage.label;
@@ -68,6 +72,9 @@
   function dateText(date) { return date ? date.replaceAll("-", ".") : "미정"; }
   function rangeText(start, end) { return !start ? "미정" : start === end ? dateText(start) : dateText(start) + " – " + dateText(end); }
   function render() {
+    byId("ipoDataNotice").textContent = publication
+      ? dateText(publication.asOf) + " 확인 · 10~11월 관련 " + Object.keys(published).length + "개 종목 · 주말·공휴일 제외"
+      : "직접 등록한 공모주 일정";
     renderCalendar();
     renderDetails();
   }
@@ -137,6 +144,10 @@
       const badges = element("div", "ipo-badges");
       stages.forEach(stage => badges.appendChild(element("span", "ipo-badge ipo-" + stage.key, stageLabel(stage, record, selected))));
       article.append(badges, element("h3", "", record.company), element("p", "ipo-market", record.market || "시장 미정"));
+      if (record.checkedAt) {
+        const state = records[record.id] ? "직접 수정" : record.listingDate && record.listingDate <= record.checkedAt ? "상장 완료" : "예정 · 변경 가능";
+        article.appendChild(element("p", "ipo-checked", state + " · 자료 확인 " + dateText(record.checkedAt)));
+      }
       const info = element("dl", "ipo-info");
       const rows = [
         ["주관사", record.broker || "미정"], ["공모가", record.price || "미정"],
@@ -146,11 +157,12 @@
       ];
       rows.forEach(([label, value]) => info.append(element("dt", "", label), element("dd", "", value)));
       article.appendChild(info);
-      if (record.sourceUrl) {
+      for (const [source, label] of [[record.sourceUrl, "출처 / 참고 자료 ↗"], [record.officialSourceUrl, "주관사 공식 공고 ↗"]]) {
+        if (!source) continue;
         try {
-          const url = new URL(record.sourceUrl);
+          const url = new URL(source);
           if (["https:", "http:"].includes(url.protocol)) {
-            const link = element("a", "ipo-source", "공고 / 참고 자료 ↗");
+            const link = element("a", "ipo-source", label);
             link.href = url.href;
             link.target = "_blank";
             link.rel = "noopener noreferrer";
@@ -169,7 +181,7 @@
     editingId = id || null;
     form.reset();
     byId("ipoFormError").hidden = true;
-    const record = id ? records[id] : null;
+    const record = id ? (records[id] || published[id]) : null;
     if (record) model.fields.forEach(field => { form.elements.namedItem(field).value = record[field] || ""; });
     else {
       // Default the selected milestone to the selected calendar day.
@@ -192,7 +204,7 @@
     sync(true);
   }
   function deleteRecord(id) {
-    const record = records[id];
+    const record = records[id] || published[id];
     if (!record || record.deleted || !window.confirm(record.company + "의 공모주 일정을 삭제할까요? 이 기업의 모든 날짜에서 함께 삭제됩니다.")) return;
     undoRecord = { ...record };
     changeRecord({ ...record, deleted: true });
@@ -284,10 +296,10 @@
     } catch (error) {
       if (error.rateLimited) {
         readLimited = true;
-        status(Object.keys(pending).length ? "기기에 저장됨 · 조회 한도 초과" : "조회 한도 초과 · 잠시 후 다시 시도", true);
+        status(Object.keys(pending).length ? "기기에 저장됨 · 조회 한도 초과" : "추가·수정 일정 조회 한도 초과", true);
         if (!gistToken) byId("ipoSyncButton").textContent = "접근 코드 연결";
       } else {
-        status(Object.keys(pending).length ? "이 기기에 저장 · 공유 저장 대기" : "연결 실패 · 저장된 일정 표시", true);
+        status(Object.keys(pending).length ? "이 기기에 저장 · 공유 저장 대기" : "공유 연결 실패 · 기본/저장 일정 표시", true);
       }
     } finally {
       busy = false;
@@ -304,14 +316,15 @@
     const data = new FormData(form);
     const values = Object.fromEntries(model.fields.map(field => [field, String(data.get(field) || "").trim()]));
     let error = model.validate(values);
-    if (editingId && (!records[editingId] || records[editingId].deleted)) error = "다른 곳에서 삭제된 일정이에요. 입력창을 닫고 새 일정으로 추가해 주세요.";
+    const original = editingId ? (records[editingId] || published[editingId]) : null;
+    if (editingId && (!original || original.deleted)) error = "다른 곳에서 삭제된 일정이에요. 입력창을 닫고 새 일정으로 추가해 주세요.";
     if (error) {
       byId("ipoFormError").textContent = error;
       byId("ipoFormError").hidden = false;
       byId("ipoFormError").scrollIntoView({ block: "nearest" });
       return;
     }
-    const next = { ...(editingId ? records[editingId] : {}), ...values, id: editingId || crypto.randomUUID(), deleted: false };
+    const next = { ...(original || {}), ...values, id: editingId || crypto.randomUUID(), deleted: false };
     if (!model.occurrences(next, selected).length) {
       selected = model.stages.map(stage => next[stage.start]).filter(Boolean).sort()[0];
       const [year, m] = selected.split("-").map(Number);

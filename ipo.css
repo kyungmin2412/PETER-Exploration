@@ -30,6 +30,9 @@
 .ipo-info dt { color: var(--muted); }
 .ipo-info dd { margin: 0; color: var(--text); overflow-wrap: anywhere; }
 .ipo-source { display: inline-block; margin-top: 15px; color: var(--green-dark); font-size: 12px; }
+.ipo-source + .ipo-source { margin-left: 12px; }
+.ipo-checked { margin: -6px 0 16px; color: var(--sub-text); font-size: 11px; line-height: 1.6; }
+.ipo-data-help { margin: 10px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
 .ipo-memo { margin: 14px 0 0; padding: 12px; border-radius: 9px; background: var(--background); color: var(--sub-text); font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
 .ipo-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; font-size: 12px; }
 .ipo-actions button { padding: 4px; color: var(--sub-text); }

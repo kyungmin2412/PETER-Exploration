@@ -34,9 +34,13 @@
     }
     return "";
   }
-  function occurrences(record, dateKey, filter = "all") {
+  function occurrences(record, dateKey, filter = "all", holidays = {}) {
     if (record.deleted) return [];
+    const [year, month, day] = dateKey.split("-").map(Number);
+    const weekday = new Date(year, month - 1, day).getDay();
+    const closed = weekday === 0 || weekday === 6 || Boolean(holidays[dateKey]);
     return stages.filter(stage => (filter === "all" || filter === stage.key) &&
+      !(record.businessDaysOnly && closed && ["demand", "subscription"].includes(stage.key)) &&
       validDate(record[stage.start]) && validDate(record[stage.end]) &&
       record[stage.start] <= dateKey && record[stage.end] >= dateKey);
   }

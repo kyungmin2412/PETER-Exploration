@@ -681,7 +681,7 @@
       .earnings-form-fields { grid-template-columns: 1fr; }
     }
   </style>
-  <link rel="stylesheet" href="ipo.css?v=20261022.1">
+  <link rel="stylesheet" href="ipo.css?v=20261022.2">
 </head>
 
 <body>
@@ -778,11 +778,12 @@
         </div>
         <div id="ipoCalendarGrid" class="calendar-grid"></div>
         <div class="ipo-footer">
-          <span>직접 등록한 공모주 일정</span>
+          <span id="ipoDataNotice">공모주 일정 불러오는 중</span>
           <span id="ipoSyncStatus" role="status">연결 중</span>
           <button id="ipoSyncButton" type="button" class="ipo-text-button">새로고침</button>
         </div>
         <p id="ipoStorageWarning" class="ipo-form-error" hidden>기기에 저장할 수 없습니다. 공유 저장 상태를 확인해 주세요.</p>
+        <p class="ipo-data-help">확인일 기준 발표된 일정이며 변경될 수 있습니다. 미발표 날짜는 미정으로 표시합니다. 날짜를 누르면 주관사·공모가·출처를 확인할 수 있습니다.</p>
       </div>
     </section>
 
@@ -2353,8 +2354,9 @@
     setSyncStatus("idle");
     startSync();
   </script>
-  <script src="ipo-model.js?v=20261022"></script>
-  <script src="ipo.js?v=20261022.1"></script>
+  <script src="ipo-model.js?v=20261022.2"></script>
+  <script src="ipo-data.js?v=20261022.2"></script>
+  <script src="ipo.js?v=20261022.2"></script>
 </body>
 </html>
 

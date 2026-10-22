@@ -22,7 +22,7 @@ let rateLimitAnonymous=false;
 let authPrompts=0;
 let hold=null;
 const writes=[];
-function start(){
+function start(publication){
   const elements=new Map();
   const el=id=>{if(!elements.has(id))elements.set(id,new El());return elements.get(id);};
   el('ipoView').hidden=false;
@@ -31,7 +31,7 @@ function start(){
   el('ipoForm').reset=()=>{Object.values(fields).forEach(field=>field.value='');};
   class FormData {get(name){return fields[name].value;}}
   const context={console,Date,URL,AbortSignal,crypto,Set,Map,FormData,
-    window:{PeterIpoModel:model,addEventListener(){},confirm:()=>true},
+    window:{PeterIpoModel:model,PeterIpoPublished:publication,addEventListener(){},confirm:()=>true},
     document:{getElementById:el,createElement:tag=>new El(tag),visibilityState:'visible'},
     localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
     makeDateKey:(y,m,d)=>y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),
@@ -86,5 +86,32 @@ const data=()=>JSON.parse(remote['ipos.json'].content).items;
   app.submit('인증 후 저장 기업');await flush();
   assert.ok(authPrompts>0,'saving must request the access code before a rate-limited read');
   assert.equal(Object.keys(data()).length,5);
+  rateLimitAnonymous=false;
+  const today=new Date();
+  const key=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
+  const published={id:'published',company:'공개 일정',subscriptionStart:key,subscriptionEnd:key,listingDate:key,sourceUrl:'https://example.com/ipo',checkedAt:'2026-10-22'};
+  const publication={version:1,asOf:'2026-10-22',items:{published}};
+  app=start(publication);
+  const allText=el=>el.textContent+' '+el.children.map(allText).join(' ');
+  const card=()=>app.el('ipoDayList').children.find(el=>el.tagName==='article'&&allText(el).includes('공개 일정'));
+  app.context.window.PeterIpo.receiveRemoteFile(undefined);
+  assert.ok(card(),'published data must survive an empty shared file');
+  assert.equal(data().published,undefined,'viewing a baseline must not upload it');
+  card().children.at(-1).children[0].listeners.click();
+  app.submit('공개 일정 수정',{subscriptionStart:key,subscriptionEnd:key,listingDate:key});await flush();
+  assert.equal(data().published.company,'공개 일정 수정','editing a baseline must retain its stable ID');
+  assert.equal(published.company,'공개 일정','baseline must remain immutable');
+  app=start(publication);
+  assert.match(allText(card()),/공개 일정 수정/,'manual edits must override the published record after reload');
+  card().children.at(-1).children[1].listeners.click();await flush();
+  assert.equal(data().published.deleted,true);
+  app.context.window.PeterIpo.receiveRemoteFile(remote['ipos.json']);
+  assert.equal(card(),undefined,'a deleted baseline must not reappear after remote sync');
+  app.el('ipoUndoButton').listeners.click();await flush();
+  assert.equal(data().published.deleted,false);
+  assert.ok(card(),'undo restores an edited published record');
+  assert.equal(remote['events.json'].content,originalVisits);
+  assert.equal(remote['events.ics'].content,'existing ICS');
   console.log('PASS: IPO-only writes, visit/earnings preservation, offline queue, reload retry, in-flight edits and authenticated rate-limit recovery ('+writes.length+' mock writes)');
+  console.log('PASS: published baseline survives empty sync; manual edit, reload, deletion and undo preserve overrides');
 })().catch(error=>{console.error(error);process.exitCode=1;});
