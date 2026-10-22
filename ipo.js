@@ -21,6 +21,7 @@
   let busy = false;
   let remoteLoaded = false;
   let pendingAuthorization = false;
+  let readLimited = false;
 
   function readLocal(key) {
     try {
@@ -101,7 +102,7 @@
       button.setAttribute("aria-label", year + "년 " + (m + 1) + "월 " + day + "일" + (HOLIDAYS[key] ? ", " + HOLIDAYS[key] : "") + ", 공모주 일정 " + entries.length + "건");
       if (key === todayKey) button.setAttribute("aria-current", "date");
       button.appendChild(element("span", "day-number", String(day)));
-      if (HOLIDAYS[key]) button.appendChild(element("span", "holiday-label", HOLIDAYS[key]));
+      if (HOLIDAYS[key]) button.appendChild(element("span", "holiday-chip", HOLIDAYS[key]));
       for (const { record, stage } of entries.slice(0, 3)) {
         const label = stageLabel(stage, record, key) + " · " + record.company;
         const chip = element("span", "ipo-chip ipo-" + stage.key, label);
@@ -116,7 +117,8 @@
       : "현재 조건에 해당하는 일정이 없어요. 날짜를 선택해 일정을 추가해 보세요.";
   }
   function renderDetails() {
-    byId("ipoSelectedDate").textContent = selected.slice(0, 4) + "년 " + formatSelectedDate(selected);
+    byId("ipoDetailLabel").textContent = selected.slice(0, 4) + "년 공모주 · 선택한 날짜";
+    byId("ipoSelectedDate").textContent = formatSelectedDate(selected);
     dayList.replaceChildren();
     const groups = new Map();
     for (const entry of dayEntries(selected)) {
@@ -221,7 +223,16 @@
       localStorage.removeItem(TOKEN_STORAGE_KEY);
       return getRemote();
     }
-    if (!response.ok) throw new Error("IPO GET " + response.status);
+    if (!response.ok) {
+      const error = new Error("IPO GET " + response.status);
+      if (response.status === 403 || response.status === 429) {
+        const details = await response.json().catch(() => ({}));
+        error.rateLimited = response.status === 429 || /rate limit/i.test(details.message || "");
+      }
+      throw error;
+    }
+    readLimited = false;
+    byId("ipoSyncButton").textContent = "새로고침";
     const gist = await response.json();
     if (!gist.files || typeof gist.files !== "object") throw new Error("Invalid Gist response");
     return model.parseFile(gist.files[FILE]);
@@ -236,6 +247,11 @@
     let didWrite = false;
     status("공모주 동기화 중");
     try {
+      // Obtain the user's existing access code before an authenticated read
+      // when saving, including when anonymous API reads are rate limited.
+      if (interactive && (Object.keys(pending).length || readLimited) && !gistToken) {
+        if (!ensureToken()) throw new Error("no token");
+      }
       const remote = await getRemote();
       remoteLoaded = true;
       const snapshot = { ...pending };
@@ -265,8 +281,14 @@
       persist();
       status(Object.keys(pending).length ? "추가 변경 저장 중" : "공유 저장됨");
       succeeded = true;
-    } catch (_) {
-      status(Object.keys(pending).length ? "이 기기에 저장 · 공유 저장 대기" : "연결 실패 · 저장된 일정 표시", true);
+    } catch (error) {
+      if (error.rateLimited) {
+        readLimited = true;
+        status(Object.keys(pending).length ? "기기에 저장됨 · 조회 한도 초과" : "조회 한도 초과 · 잠시 후 다시 시도", true);
+        if (!gistToken) byId("ipoSyncButton").textContent = "접근 코드 연결";
+      } else {
+        status(Object.keys(pending).length ? "이 기기에 저장 · 공유 저장 대기" : "연결 실패 · 저장된 일정 표시", true);
+      }
     } finally {
       busy = false;
       if (!byId("ipoView").hidden) render();
