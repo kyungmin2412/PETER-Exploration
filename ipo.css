@@ -9,7 +9,6 @@
 .ipo-filter:hover { background: var(--background); }
 .ipo-filter.active { background: var(--green-light); border-color: #a9cf75; color: var(--green-dark); font-weight: 700; }
 .ipo-dot { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--ipo-color); }
-.ipo-demand { --ipo-color: #8659b8; --ipo-light: #f2eafa; }
 .ipo-subscription { --ipo-color: #326bbb; --ipo-light: #eaf2ff; }
 .ipo-refund { --ipo-color: #a16813; --ipo-light: #fff3db; }
 .ipo-listing { --ipo-color: #438225; --ipo-light: #eaf6e2; }

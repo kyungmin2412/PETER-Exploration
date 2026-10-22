@@ -73,7 +73,7 @@
   function rangeText(start, end) { return !start ? "미정" : start === end ? dateText(start) : dateText(start) + " – " + dateText(end); }
   function render() {
     byId("ipoDataNotice").textContent = publication
-      ? dateText(publication.asOf) + " 확인 · 10~11월 관련 " + Object.keys(published).length + "개 종목 · 주말·공휴일 제외"
+      ? dateText(publication.asOf) + " 확인 · 청약·환불·상장 일정 · 주말·공휴일 제외"
       : "직접 등록한 공모주 일정";
     renderCalendar();
     renderDetails();
@@ -135,7 +135,7 @@
     if (!groups.size) {
       const empty = element("div", "empty-state");
       empty.append(element("span", "empty-icon", "🌱"), element("strong", "", "이 날짜에 공모주 일정이 없어요"));
-      empty.appendChild(element("p", "", stageFilter !== "all" || byId("ipoSearchInput").value ? "검색어나 일정 종류를 바꾸어 확인해 보세요." : "수요예측부터 상장일까지\n필요한 일정을 함께 모아보세요."));
+      empty.appendChild(element("p", "", stageFilter !== "all" || byId("ipoSearchInput").value ? "검색어나 일정 종류를 바꾸어 확인해 보세요." : "청약부터 상장일까지\n필요한 일정을 함께 모아보세요."));
       empty.appendChild(action("+ 공모주 일정 추가", "ipo-empty-button", () => openForm()));
       dayList.appendChild(empty);
     }
@@ -151,7 +151,6 @@
       const info = element("dl", "ipo-info");
       const rows = [
         ["주관사", record.broker || "미정"], ["공모가", record.price || "미정"],
-        ["수요예측", rangeText(record.demandStart, record.demandEnd)],
         ["청약", rangeText(record.subscriptionStart, record.subscriptionEnd)],
         ["환불", dateText(record.refundDate)], ["상장", dateText(record.listingDate)]
       ];
@@ -185,7 +184,7 @@
     if (record) model.fields.forEach(field => { form.elements.namedItem(field).value = record[field] || ""; });
     else {
       // Default the selected milestone to the selected calendar day.
-      const stage = model.stages.find(item => item.key === stageFilter) || model.stages[1];
+      const stage = model.stages.find(item => item.key === stageFilter) || model.stages[0];
       form.elements.namedItem(stage.start).value = selected;
       form.elements.namedItem(stage.end).value = selected;
     }

@@ -681,7 +681,7 @@
       .earnings-form-fields { grid-template-columns: 1fr; }
     }
   </style>
-  <link rel="stylesheet" href="ipo.css?v=20261022.2">
+  <link rel="stylesheet" href="ipo.css?v=20261022.3">
 </head>
 
 <body>
@@ -767,7 +767,6 @@
         </div>
         <div id="ipoStageFilters" class="ipo-filters" role="group" aria-label="공모주 일정 종류">
           <button type="button" class="ipo-filter active" data-stage="all" aria-pressed="true">전체</button>
-          <button type="button" class="ipo-filter" data-stage="demand" aria-pressed="false"><span class="ipo-dot ipo-demand"></span>수요예측</button>
           <button type="button" class="ipo-filter" data-stage="subscription" aria-pressed="false"><span class="ipo-dot ipo-subscription"></span>청약</button>
           <button type="button" class="ipo-filter" data-stage="refund" aria-pressed="false"><span class="ipo-dot ipo-refund"></span>환불</button>
           <button type="button" class="ipo-filter" data-stage="listing" aria-pressed="false"><span class="ipo-dot ipo-listing"></span>상장</button>
@@ -828,10 +827,6 @@
           <div class="form-field"><label for="ipoBroker">주관사</label><input id="ipoBroker" name="broker" maxlength="160" placeholder="예: 한국투자증권, NH투자증권"></div>
           <div class="form-field"><label for="ipoPrice">공모가 / 희망 범위</label><input id="ipoPrice" name="price" maxlength="80" placeholder="예: 15,000원 또는 12,000~15,000원"></div>
         </div>
-        <fieldset class="ipo-date-group"><legend><span class="ipo-dot ipo-demand"></span> 수요예측</legend><div class="ipo-form-grid">
-          <div class="form-field"><label for="ipoDemandStart">수요예측 시작일</label><input id="ipoDemandStart" name="demandStart" type="date"></div>
-          <div class="form-field"><label for="ipoDemandEnd">수요예측 종료일</label><input id="ipoDemandEnd" name="demandEnd" type="date"></div>
-        </div></fieldset>
         <fieldset class="ipo-date-group"><legend><span class="ipo-dot ipo-subscription"></span> 청약</legend><div class="ipo-form-grid">
           <div class="form-field"><label for="ipoSubscriptionStart">청약 시작일</label><input id="ipoSubscriptionStart" name="subscriptionStart" type="date"></div>
           <div class="form-field"><label for="ipoSubscriptionEnd">청약 종료일</label><input id="ipoSubscriptionEnd" name="subscriptionEnd" type="date"></div>
@@ -2354,9 +2349,9 @@
     setSyncStatus("idle");
     startSync();
   </script>
-  <script src="ipo-model.js?v=20261022.2"></script>
+  <script src="ipo-model.js?v=20261022.3"></script>
   <script src="ipo-data.js?v=20261022.2"></script>
-  <script src="ipo.js?v=20261022.2"></script>
+  <script src="ipo.js?v=20261022.3"></script>
 </body>
 </html>
 
