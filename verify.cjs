@@ -12,7 +12,7 @@ assert.equal(m.validate(r), '');
 assert.equal(m.occurrences(r, '2026-10-29').length, 0);
 for (const d of ['2026-10-30','2026-10-31','2026-11-01','2026-11-02']) assert.equal(m.occurrences(r,d)[0].key, 'subscription');
 assert.equal(m.occurrences(r,'2026-11-03').length,0);
-assert.equal(m.occurrences(r,'2026-11-04')[0].key,'refund');
+assert.equal(m.occurrences(r,'2026-11-04').length,0);
 assert.equal(m.occurrences(r,'2026-11-10','subscription').length,0);
 assert.equal(m.occurrences({...r,deleted:true},'2026-10-30').length,0);
 assert.ok(m.matches(r,'테스트증권'));

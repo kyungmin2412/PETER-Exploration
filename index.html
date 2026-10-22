@@ -681,7 +681,7 @@
       .earnings-form-fields { grid-template-columns: 1fr; }
     }
   </style>
-  <link rel="stylesheet" href="ipo.css?v=20261022.3">
+  <link rel="stylesheet" href="ipo.css?v=20261022.4">
 </head>
 
 <body>
@@ -768,7 +768,6 @@
         <div id="ipoStageFilters" class="ipo-filters" role="group" aria-label="공모주 일정 종류">
           <button type="button" class="ipo-filter active" data-stage="all" aria-pressed="true">전체</button>
           <button type="button" class="ipo-filter" data-stage="subscription" aria-pressed="false"><span class="ipo-dot ipo-subscription"></span>청약</button>
-          <button type="button" class="ipo-filter" data-stage="refund" aria-pressed="false"><span class="ipo-dot ipo-refund"></span>환불</button>
           <button type="button" class="ipo-filter" data-stage="listing" aria-pressed="false"><span class="ipo-dot ipo-listing"></span>상장</button>
         </div>
         <p id="ipoMonthSummary" class="ipo-month-summary" aria-live="polite"></p>
@@ -832,7 +831,6 @@
           <div class="form-field"><label for="ipoSubscriptionEnd">청약 종료일</label><input id="ipoSubscriptionEnd" name="subscriptionEnd" type="date"></div>
         </div></fieldset>
         <div class="ipo-form-grid">
-          <div class="form-field"><label for="ipoRefundDate"><span class="ipo-dot ipo-refund"></span> 환불일</label><input id="ipoRefundDate" name="refundDate" type="date"></div>
           <div class="form-field"><label for="ipoListingDate"><span class="ipo-dot ipo-listing"></span> 상장일</label><input id="ipoListingDate" name="listingDate" type="date"></div>
         </div>
         <div class="form-field"><label for="ipoSourceUrl">공고 / 참고 링크</label><input id="ipoSourceUrl" name="sourceUrl" type="url" maxlength="1500" placeholder="https://"></div>
@@ -2349,9 +2347,9 @@
     setSyncStatus("idle");
     startSync();
   </script>
-  <script src="ipo-model.js?v=20261022.3"></script>
+  <script src="ipo-model.js?v=20261022.4"></script>
   <script src="ipo-data.js?v=20261022.2"></script>
-  <script src="ipo.js?v=20261022.3"></script>
+  <script src="ipo.js?v=20261022.4"></script>
 </body>
 </html>
 

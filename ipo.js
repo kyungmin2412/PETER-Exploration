@@ -73,7 +73,7 @@
   function rangeText(start, end) { return !start ? "미정" : start === end ? dateText(start) : dateText(start) + " – " + dateText(end); }
   function render() {
     byId("ipoDataNotice").textContent = publication
-      ? dateText(publication.asOf) + " 확인 · 청약·환불·상장 일정 · 주말·공휴일 제외"
+      ? dateText(publication.asOf) + " 확인 · 청약·상장 일정 · 주말·공휴일 제외"
       : "직접 등록한 공모주 일정";
     renderCalendar();
     renderDetails();
@@ -152,7 +152,7 @@
       const rows = [
         ["주관사", record.broker || "미정"], ["공모가", record.price || "미정"],
         ["청약", rangeText(record.subscriptionStart, record.subscriptionEnd)],
-        ["환불", dateText(record.refundDate)], ["상장", dateText(record.listingDate)]
+        ["상장", dateText(record.listingDate)]
       ];
       rows.forEach(([label, value]) => info.append(element("dt", "", label), element("dd", "", value)));
       article.appendChild(info);
