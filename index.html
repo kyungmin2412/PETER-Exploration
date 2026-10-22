@@ -681,6 +681,7 @@
       .earnings-form-fields { grid-template-columns: 1fr; }
     }
   </style>
+  <link rel="stylesheet" href="ipo.css?v=20261022">
 </head>
 
 <body>
@@ -702,6 +703,7 @@
         <button id="calendarTabButton" type="button" class="view-tab active">📅 캘린더</button>
         <button id="directoryTabButton" type="button" class="view-tab">🏢 기업 목록</button>
         <button id="earningsTabButton" type="button" class="view-tab">📊 실적 발표</button>
+        <button id="ipoTabButton" type="button" class="view-tab" aria-pressed="false">🌱 공모주 달력</button>
       </div>
 
       <div id="participantFilterRow" class="participant-filter-row"></div>
@@ -750,9 +752,41 @@
         </form>
         <div id="earningsList" class="earnings-list"></div>
       </div>
+
+      <div id="ipoView" hidden>
+        <div class="calendar-header">
+          <div class="month-navigation">
+            <button id="ipoPreviousMonth" class="arrow-button" aria-label="공모주 이전 달">‹</button>
+            <h2 id="ipoMonthTitle"></h2>
+            <button id="ipoNextMonth" class="arrow-button" aria-label="공모주 다음 달">›</button>
+          </div>
+          <button id="ipoTodayButton" class="today-button">오늘</button>
+        </div>
+        <div class="search-row">
+          <input id="ipoSearchInput" type="search" placeholder="기업명·주관사 검색 (현재 월)" aria-label="공모주 기업명·주관사 검색" autocomplete="off">
+        </div>
+        <div id="ipoStageFilters" class="ipo-filters" role="group" aria-label="공모주 일정 종류">
+          <button type="button" class="ipo-filter active" data-stage="all" aria-pressed="true">전체</button>
+          <button type="button" class="ipo-filter" data-stage="demand" aria-pressed="false"><span class="ipo-dot ipo-demand"></span>수요예측</button>
+          <button type="button" class="ipo-filter" data-stage="subscription" aria-pressed="false"><span class="ipo-dot ipo-subscription"></span>청약</button>
+          <button type="button" class="ipo-filter" data-stage="refund" aria-pressed="false"><span class="ipo-dot ipo-refund"></span>환불</button>
+          <button type="button" class="ipo-filter" data-stage="listing" aria-pressed="false"><span class="ipo-dot ipo-listing"></span>상장</button>
+        </div>
+        <p id="ipoMonthSummary" class="ipo-month-summary" aria-live="polite"></p>
+        <div class="weekdays" aria-hidden="true">
+          <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div id="ipoCalendarGrid" class="calendar-grid"></div>
+        <div class="ipo-footer">
+          <span>직접 등록한 공모주 일정</span>
+          <span id="ipoSyncStatus" role="status">연결 중</span>
+          <button id="ipoSyncButton" type="button" class="ipo-text-button">새로고침</button>
+        </div>
+        <p id="ipoStorageWarning" class="ipo-form-error" hidden>기기에 저장할 수 없습니다. 공유 저장 상태를 확인해 주세요.</p>
+      </div>
     </section>
 
-    <aside class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
+    <aside id="visitDetailPanel" class="detail-card" aria-live="polite" aria-label="탐방 일정과 참여자">
       <div class="detail-header">
         <div>
           <p class="detail-label">선택한 날짜</p>
@@ -763,7 +797,55 @@
       <div id="eventList" class="event-list"></div>
       <div id="selectedEarnings" class="selected-earnings" hidden></div>
     </aside>
+    <aside id="ipoDetailPanel" class="detail-card" aria-label="선택한 날짜의 공모주 일정" hidden>
+      <div class="detail-header">
+        <div>
+          <p class="detail-label">공모주 · 선택한 날짜</p>
+          <h2 id="ipoSelectedDate"></h2>
+        </div>
+        <button id="ipoAddButton" class="add-button">+ 일정 추가</button>
+      </div>
+      <div id="ipoDayList" class="event-list" aria-live="polite"></div>
+      <div id="ipoUndoBar" class="ipo-undo" hidden>
+        <span>일정을 삭제했어요.</span>
+        <button id="ipoUndoButton" type="button" class="ipo-text-button">되돌리기</button>
+      </div>
+    </aside>
   </main>
+
+  <dialog id="ipoDialog" aria-labelledby="ipoDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-header">
+        <h2 id="ipoDialogTitle">공모주 일정 추가</h2>
+        <button id="ipoCloseDialog" type="button" class="close-button" aria-label="공모주 입력창 닫기">×</button>
+      </div>
+      <p class="ipo-form-help">날짜가 정해진 항목만 입력하세요. 하나의 기업에 여러 일정을 함께 등록할 수 있어요.</p>
+      <form id="ipoForm" class="event-form">
+        <div class="ipo-form-grid">
+          <div class="form-field"><label for="ipoCompany">기업명 *</label><input id="ipoCompany" name="company" maxlength="80" required placeholder="기업명"></div>
+          <div class="form-field"><label for="ipoMarket">시장</label><select id="ipoMarket" name="market"><option value="">미정</option>코스피</option><option>코스닥</option><option>코넥스</option><option>스팩</option><option>기타</option></select></div>
+          <div class="form-field"><label for="ipoBroker">주관사</label><input id="ipoBroker" name="broker" maxlength="160" placeholder="예: 한국투자증권, NH투자증권"></div>
+          <div class="form-field"><label for="ipoPrice">공모가 / 희망 범위</label><input id="ipoPrice" name="price" maxlength="80" placeholder="예: 15,000원 또는 12,000~15,000원"></div>
+        </div>
+        <fieldset class="ipo-date-group"><legend><span class="ipo-dot ipo-demand"></span> 수요예측</legend><div class="ipo-form-grid">
+          <div class="form-field"><label for="ipoDemandStart">수요예측 시작일</label><input id="ipoDemandStart" name="demandStart" type="date"></div>
+          <div class="form-field"><label for="ipoDemandEnd">수요예측 종료일</label><input id="ipoDemandEnd" name="demandEnd" type="date"></div>
+        </div></fieldset>
+        <fieldset class="ipo-date-group"><legend><span class="ipo-dot ipo-subscription"></span> 청약</legend><div class="ipo-form-grid">
+          <div class="form-field"><label for="ipoSubscriptionStart">청약 시작일</label><input id="ipoSubscriptionStart" name="subscriptionStart" type="date"></div>
+          <div class="form-field"><label for="ipoSubscriptionEnd">청약 종료일</label><input id="ipoSubscriptionEnd" name="subscriptionEnd" type="date"></div>
+        </div></fieldset>
+        <div class="ipo-form-grid">
+          <div class="form-field"><label for="ipoRefundDate"><span class="ipo-dot ipo-refund"></span> 환불일</label><input id="ipoRefundDate" name="refundDate" type="date"></div>
+          <div class="form-field"><label for="ipoListingDate"><span class="ipo-dot ipo-listing"></span> 상장일</label><input id="ipoListingDate" name="listingDate" type="date"></div>
+        </div>
+        <div class="form-field"><label for="ipoSourceUrl">공고 / 참고 링크</label><input id="ipoSourceUrl" name="sourceUrl" type="url" maxlength="1500" placeholder="https://"></div>
+        <div class="form-field"><label for="ipoMemo">메모</label><textarea id="ipoMemo" name="memo" rows="3" maxlength="1500" placeholder="청약 조건이나 확인할 내용을 남겨주세요"></textarea></div>
+        <p id="ipoFormError" class="ipo-form-error" role="alert" hidden></p>
+        <button id="ipoSubmitButton" class="submit-button" type="submit">공모주 일정 저장</button>
+      </form>
+    </div>
+  </dialog>
 
   <dialog id="eventDialog" aria-labelledby="dialogTitle">
     <div class="dialog-content">
@@ -1112,6 +1194,7 @@
       });
       if (!response.ok) throw new Error("GET " + response.status);
       const data = await response.json();
+      if (window.PeterIpo) window.PeterIpo.receiveRemoteFile(data.files && data.files["ipos.json"]);
       const file = data.files && data.files[GIST_FILENAME];
       if (!file) throw new Error("missing file");
       return JSON.parse(file.content);
@@ -1468,10 +1551,16 @@
       calendarView.hidden = tab !== "calendar";
       directoryView.hidden = tab !== "directory";
       earningsView.hidden = tab !== "earnings";
+      document.getElementById("ipoView").hidden = tab !== "ipo";
+      document.getElementById("visitDetailPanel").hidden = tab === "ipo";
+      document.getElementById("ipoDetailPanel").hidden = tab !== "ipo";
       calendarTabButton.classList.toggle("active", tab === "calendar");
       directoryTabButton.classList.toggle("active", tab === "directory");
       earningsTabButton.classList.toggle("active", tab === "earnings");
-      participantFilterRow.hidden = tab === "earnings";
+      document.getElementById("ipoTabButton").classList.toggle("active", tab === "ipo");
+      document.getElementById("ipoTabButton").setAttribute("aria-pressed", String(tab === "ipo"));
+      participantFilterRow.hidden = tab === "earnings" || tab === "ipo";
+      if (tab === "ipo" && window.PeterIpo) window.PeterIpo.refresh();
       if (tab === "directory") renderDirectory();
       if (tab === "earnings") {
         if (!earningsDateInput.value) earningsDateInput.value = selectedKey;
@@ -2264,5 +2353,8 @@
     setSyncStatus("idle");
     startSync();
   </script>
+  <script src="ipo-model.js?v=20261022"></script>
+  <script src="ipo.js?v=20261022"></script>
 </body>
 </html>
+

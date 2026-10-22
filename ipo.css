@@ -1,0 +1,69 @@
+/* IPO calendar shares the visit calendar's existing layout and green palette. */
+#ipoView[hidden], #ipoDetailPanel[hidden], #visitDetailPanel[hidden],
+#ipoUndoBar[hidden], #ipoFormError[hidden], #ipoStorageWarning[hidden] { display: none; }
+.view-tabs { flex-wrap: wrap; }
+.view-tab { white-space: nowrap; }
+#ipoMonthTitle { min-width: 140px; margin: 0; font-size: 22px; text-align: center; letter-spacing: -.8px; }
+.ipo-filters { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }
+.ipo-filter { display: inline-flex; align-items: center; gap: 5px; padding: 7px 10px; border-radius: 20px; border: 1px solid var(--border); font-size: 12px; color: var(--sub-text); }
+.ipo-filter:hover { background: var(--background); }
+.ipo-filter.active { background: var(--green-light); border-color: #a9cf75; color: var(--green-dark); font-weight: 700; }
+.ipo-dot { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--ipo-color); }
+.ipo-demand { --ipo-color: #8659b8; --ipo-light: #f2eafa; }
+.ipo-subscription { --ipo-color: #326bbb; --ipo-light: #eaf2ff; }
+.ipo-refund { --ipo-color: #a16813; --ipo-light: #fff3db; }
+.ipo-listing { --ipo-color: #438225; --ipo-light: #eaf6e2; }
+.ipo-month-summary { margin: 0 0 18px; color: var(--sub-text); font-size: 12px; line-height: 1.6; }
+#ipoCalendarGrid .day { min-width: 0; min-height: 100px; }
+.ipo-chip { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; padding: 5px 4px; border-radius: 6px; background: var(--ipo-light); color: var(--ipo-color); font-size: 10px; font-weight: 700; }
+.ipo-more { display: block; margin: 5px 2px 0; color: var(--muted); font-size: 10px; }
+.ipo-footer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; line-height: 1.6; }
+#ipoSyncStatus { margin-left: auto; }
+#ipoSyncStatus[data-state="error"] { color: #bd5f30; }
+.ipo-text-button { padding: 2px 0; color: var(--green-dark); text-decoration: underline; text-underline-offset: 3px; font-size: inherit; }
+.ipo-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.ipo-badge { padding: 5px 8px; border-radius: 7px; background: var(--ipo-light); color: var(--ipo-color); font-size: 11px; font-weight: 700; }
+.ipo-item h3 { margin-bottom: 6px; overflow-wrap: anywhere; }
+.ipo-market { margin: 0 0 16px; color: var(--muted); font-size: 12px; }
+.ipo-info { display: grid; grid-template-columns: 62px minmax(0, 1fr); gap: 9px 10px; margin: 0; font-size: 12px; line-height: 1.6; }
+.ipo-info dt { color: var(--muted); }
+.ipo-info dd { margin: 0; color: var(--text); overflow-wrap: anywhere; }
+.ipo-source { display: inline-block; margin-top: 15px; color: var(--green-dark); font-size: 12px; }
+.ipo-memo { margin: 14px 0 0; padding: 12px; border-radius: 9px; background: var(--background); color: var(--sub-text); font-size: 12px; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ipo-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; font-size: 12px; }
+.ipo-actions button { padding: 4px; color: var(--sub-text); }
+.ipo-actions .ipo-delete { color: #b94e50; }
+.ipo-empty-button { margin-top: 18px; padding: 10px 16px; border-radius: 10px; background: var(--green-light); color: var(--green-dark); font-weight: 700; font-size: 12px; }
+.ipo-undo { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 18px; padding: 12px; border-radius: 10px; background: var(--background); font-size: 12px; }
+#ipoDialog { width: min(620px, calc(100% - 28px)); max-height: calc(100dvh - 40px); }
+.ipo-form-help { margin: -8px 0 24px; color: var(--sub-text); font-size: 12px; line-height: 1.7; }
+.ipo-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.ipo-date-group { min-width: 0; margin: 0; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
+.ipo-date-group legend { padding: 0 6px; color: var(--sub-text); font-size: 12px; font-weight: 700; }
+#ipoForm .form-field { min-width: 0; }
+#ipoForm input, #ipoForm select, #ipoForm textarea { min-width: 0; max-width: 100%; font: inherit; font-size: 13px; }
+#ipoForm select, #ipoForm textarea { width: 100%; padding: 12px; color: var(--text); border: 1px solid var(--border); border-radius: 11px; background: white; }
+#ipoForm select { height: 46px; }
+#ipoForm textarea { resize: vertical; }
+#ipoForm :is(input, select, textarea):focus { outline: 2px solid #a9cf75; outline-offset: 2px; }
+.ipo-form-error { margin: 0; color: #bd343d; font-size: 12px; line-height: 1.6; }
+#ipoView button:focus-visible, #ipoDetailPanel button:focus-visible { outline: 2px solid var(--green-dark); outline-offset: 2px; }
+@media (min-width: 851px) and (max-width: 1000px) {
+  .main-content { grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); }
+}
+@media (max-width: 620px) {
+  .view-tabs { gap: 4px; }
+  .view-tab { padding: 9px 8px; font-size: 12px; }
+  #ipoMonthTitle { min-width: 110px; font-size: 18px; }
+  .ipo-filters { gap: 4px; }
+  .ipo-filter { padding: 6px 8px; font-size: 11px; }
+  #ipoCalendarGrid .day { min-height: 85px; }
+  .ipo-chip { padding: 4px 2px; font-size: 8px; }
+  .ipo-more { font-size: 8px; }
+  .ipo-footer { padding: 13px 6px 0; gap: 6px 10px; }
+  #ipoSyncStatus { margin-left: 0; }
+  #ipoDialog .dialog-content { padding: 22px 18px; }
+  .ipo-form-grid { gap: 12px; }
+  #ipoForm input, #ipoForm select, #ipoForm textarea { font-size: 16px; }
+}
+@media (max-width: 380px) { .ipo-form-grid { grid-template-columns: 1fr; } }
